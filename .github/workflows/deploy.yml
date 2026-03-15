@@ -12,14 +12,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: Generate Firebase config
         run: |
-          mkdir -p bt/config
+          mkdir -p team/config
           echo '{
             "apiKey": "${{ secrets.FIREBASE_API_KEY }}",
             "authDomain": "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
@@ -28,11 +23,18 @@ jobs:
             "messagingSenderId": "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}",
             "appId": "${{ secrets.FIREBASE_APP_ID }}",
             "vapidKey": "${{ secrets.FIREBASE_VAPID_KEY }}"
-          }' > bt/config/firebase-config.json
+          }' > team/config/firebase-config.json
+
+      - name: Log contenu du dossier team
+        run: |
+          echo "Contenu du dossier team :"
+          ls -l team
+          echo "Contenu du dossier team/config :"
+          ls -l team/config
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./bt
+          publish_dir: ./team
           publish_branch: gh-pages
