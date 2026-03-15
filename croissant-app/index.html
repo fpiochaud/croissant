@@ -368,39 +368,44 @@
      SCRIPT PRINCIPAL
      ══════════════════════════════════════════════════════════ -->
 <script>
-// ─────────────────────────────────────────────────────────────
-// 1. CONFIGURATION FIREBASE
-//    Remplacer les YOUR_* par vos vraies valeurs
-//    Source : Console Firebase > Paramètres projet > Vos applications
-// ─────────────────────────────────────────────────────────────
-const FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
-};
 
-// Clé VAPID : Console Firebase > Cloud Messaging > Certificats push web
-const VAPID_KEY = "YOUR_VAPID_PUBLIC_KEY";
-
-// Nom de votre équipe (sera stocké dans Firestore)
+// ─────────────────────────────────────────────────────────────
+// 1. CONFIGURATION FIREBASE (chargée dynamiquement)
+// ─────────────────────────────────────────────────────────────
+let FIREBASE_CONFIG = {};
+let VAPID_KEY = '';
 const TEAM_ID = "equipe-dev"; // identifiant unique de votre équipe
 
-// ─────────────────────────────────────────────────────────────
-// 2. INIT FIREBASE
-// ─────────────────────────────────────────────────────────────
-firebase.initializeApp(FIREBASE_CONFIG);
-const db  = firebase.firestore();
-const messaging = firebase.messaging();
+function initFirebase() {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  window.db = firebase.firestore();
+  window.messaging = firebase.messaging();
 
-// Collections Firestore
-const TEAM_DOC       = db.collection('teams').doc(TEAM_ID);
-const PERSONS_COL    = TEAM_DOC.collection('persons');
-const HISTORY_COL    = TEAM_DOC.collection('history');
-const NOTIFS_COL     = TEAM_DOC.collection('notifications');
-const SUBS_COL       = db.collection('subscriptions'); // tokens FCM par user
+  // Collections Firestore
+  window.TEAM_DOC       = db.collection('teams').doc(TEAM_ID);
+  window.PERSONS_COL    = TEAM_DOC.collection('persons');
+  window.HISTORY_COL    = TEAM_DOC.collection('history');
+  window.NOTIFS_COL     = TEAM_DOC.collection('notifications');
+  window.SUBS_COL       = db.collection('subscriptions'); // tokens FCM par user
+}
+
+fetch('config/firebase-config.json')
+  .then(r => r.json())
+  .then(cfg => {
+    FIREBASE_CONFIG = {
+      apiKey: cfg.apiKey,
+      authDomain: cfg.authDomain,
+      projectId: cfg.projectId,
+      storageBucket: cfg.storageBucket,
+      messagingSenderId: cfg.messagingSenderId,
+      appId: cfg.appId
+    };
+    VAPID_KEY = cfg.vapidKey;
+    initFirebase();
+  })
+  .catch(() => {
+    alert('Erreur de chargement de la configuration Firebase.');
+  });
 
 // ─────────────────────────────────────────────────────────────
 // 3. STATE LOCAL (cache de ce qu'on a reçu de Firestore)

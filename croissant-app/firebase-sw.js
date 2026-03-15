@@ -10,12 +10,26 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-com
 // ── CONFIGURATION FIREBASE ──────────────────────────────────
 // Copier depuis : Console Firebase > Paramètres projet > Vos applis
 firebase.initializeApp({
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+
+// Charger la config dynamiquement
+self.addEventListener('install', event => {
+  event.waitUntil(
+    fetch('config/firebase-config.json')
+      .then(r => r.json())
+      .then(cfg => {
+        firebase.initializeApp({
+          apiKey: cfg.apiKey,
+          authDomain: cfg.authDomain,
+          projectId: cfg.projectId,
+          storageBucket: cfg.storageBucket,
+          messagingSenderId: cfg.messagingSenderId,
+          appId: cfg.appId
+        });
+      })
+      .catch(() => {
+        // Fallback: ne rien faire
+      })
+  );
 });
 
 const messaging = firebase.messaging();
