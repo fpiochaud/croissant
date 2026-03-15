@@ -12,12 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-
       - name: Generate Firebase config
         run: |
           mkdir -p croissant-app/config
@@ -31,18 +25,15 @@ jobs:
             "vapidKey": "${{ secrets.FIREBASE_VAPID_KEY }}"
           }' > croissant-app/config/firebase-config.json
 
-      - name: Préparer le dossier de publication
+      - name: Préparer le dossier bt
         run: |
-          rm -rf public
-          mkdir public
-          cp -r croissant-app/* public/
-
-      - name: Copier index.html à la racine
-        run: cp croissant-app/index.html public/index.html
+          rm -rf bt
+          mkdir bt
+          cp -r croissant-app/* bt/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: public
+          publish_dir: bt
           publish_branch: gh-pages
