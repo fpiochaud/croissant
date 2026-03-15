@@ -12,9 +12,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Generate Firebase config
         run: |
-          mkdir -p croissant-app/config
+          mkdir -p bt/config
           echo '{
             "apiKey": "${{ secrets.FIREBASE_API_KEY }}",
             "authDomain": "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
@@ -23,20 +28,7 @@ jobs:
             "messagingSenderId": "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}",
             "appId": "${{ secrets.FIREBASE_APP_ID }}",
             "vapidKey": "${{ secrets.FIREBASE_VAPID_KEY }}"
-          }' > croissant-app/config/firebase-config.json
-
-      - name: Préparer le dossier bt
-        run: |
-          rm -rf bt
-          mkdir bt
-          cp -r croissant-app/* bt/
-
-      - name: Log contenu du dossier bt
-        run: |
-          echo "Contenu du dossier bt :"
-          ls -l bt
-          echo "Contenu du dossier bt/config :"
-          ls -l bt/config
+          }' > bt/config/firebase-config.json
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
