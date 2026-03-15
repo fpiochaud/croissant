@@ -31,6 +31,8 @@ jobs:
           ls -l team
           echo "Contenu du dossier team/config :"
           ls -l team/config
+          echo "Contenu du fichier team/config/firebase-config.json :"
+          cat team/config/firebase-config.json || echo "Fichier absent"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
