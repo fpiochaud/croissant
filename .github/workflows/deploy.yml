@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: '20'
 
+
       - name: Generate Firebase config
         run: |
           mkdir -p croissant-app/config
@@ -30,10 +31,18 @@ jobs:
             "vapidKey": "${{ secrets.FIREBASE_VAPID_KEY }}"
           }' > croissant-app/config/firebase-config.json
 
+      - name: Préparer le dossier de publication
+        run: |
+          rm -rf public
+          mkdir public
+          cp -r croissant-app/* public/
+
+      - name: Copier index.html à la racine
+        run: cp croissant-app/index.html public/index.html
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: croissant-app
+          publish_dir: public
           publish_branch: gh-pages
-          destination: .
