@@ -1,0 +1,43 @@
+// firestore.rules
+// Déployer avec : firebase deploy --only firestore:rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Équipes ──────────────────────────────────────────────
+    // Lecture publique (tout le monde peut voir le planning)
+    // Écriture ouverte (pas d'auth pour simplifier l'usage)
+    // Pour renforcer : ajouter Firebase Auth et vérifier request.auth != null
+    match /teams/{teamId} {
+      allow read:  if true;
+      allow write: if true;
+
+      // Personnes de l'équipe
+      match /persons/{personId} {
+        allow read:  if true;
+        allow write: if true;
+      }
+
+      // Historique
+      match /history/{entryId} {
+        allow read:  if true;
+        allow write: if true;
+      }
+
+      // Notifications in-app
+      match /notifications/{notifId} {
+        allow read:  if true;
+        allow write: if true;
+      }
+    }
+
+    // ── Subscriptions FCM ────────────────────────────────────
+    // Chaque appareil enregistre son token FCM
+    // Lecture réservée aux Cloud Functions (Admin SDK, bypass rules)
+    match /subscriptions/{subId} {
+      allow read:  if false;  // uniquement via Admin SDK (Cloud Function)
+      allow write: if true;   // n'importe quel appareil peut s'enregistrer
+    }
+  }
+}

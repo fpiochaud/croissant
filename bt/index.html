@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Croissants">
+<meta name="theme-color" content="#92680A">
+<title>🥐 Croissants du lundi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- ══════════════════════════════════════════════════════════
+     SDK Firebase (compat pour simplicité, pas besoin de bundler)
+     ══════════════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+
+<style>
+  :root {
+    --gold: #92680A; --gold-light: #F5E6C8; --gold-dark: #6B4C08; --gold-mid: #C49020;
+    --cream: #FFFBF4; --surface: #FFF8EC;
+    --border: rgba(146,104,10,0.15); --border-strong: rgba(146,104,10,0.3);
+    --text: #2C1F06; --text-muted: #7A6040; --text-hint: #B09060;
+    --green: #2D6A4F; --green-bg: #D8F3DC;
+    --orange: #A84010; --orange-bg: #FDEBD0;
+    --blue: #1A4F7A; --blue-bg: #DBEAFE;
+    --red: #9B2335; --red-bg: #FDE8EC;
+    --radius: 14px; --radius-sm: 8px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100dvh; overflow-x: hidden; }
+
+  /* HEADER */
+  .header { background: linear-gradient(160deg, var(--gold-dark) 0%, var(--gold) 60%, var(--gold-mid) 100%); padding: calc(var(--safe-top) + 20px) 20px 24px; position: relative; overflow: hidden; }
+  .header::before { content: '🥐'; position: absolute; right: -10px; top: -10px; font-size: 120px; opacity: 0.08; transform: rotate(-20deg); pointer-events: none; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .header-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: #fff; }
+  .header-subtitle { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+  .header-settings { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-size: 16px; }
+  .next-card { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+  .next-avatar { width: 46px; height: 46px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; color: var(--gold-dark); flex-shrink: 0; }
+  .next-label { font-size: 11px; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .next-name { font-size: 16px; font-weight: 600; color: #fff; }
+  .next-date { font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 2px; }
+  .next-badge { margin-left: auto; background: rgba(255,215,0,0.25); border: 1px solid rgba(255,215,0,0.4); color: #FFE97A; font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+
+  /* SYNC STATUS */
+  .sync-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--gold-light); font-size: 12px; color: var(--gold-dark); }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+  .sync-dot.online { background: var(--green); }
+  .sync-dot.offline { background: var(--red); }
+  .sync-dot.syncing { background: var(--gold-mid); animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* NAV */
+  .nav { display: flex; background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+  .nav-btn { flex: 1; padding: 12px 4px 10px; background: none; border: none; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .nav-btn .nav-icon { font-size: 18px; }
+  .nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* CONTENT */
+  .content { padding-bottom: calc(var(--safe-bottom) + 16px); }
+  .tab { display: none; }
+  .tab.active { display: block; }
+  .section-pad { padding: 16px 16px 0; }
+  .sec-label { font-size: 11px; font-weight: 600; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; margin-top: 16px; }
+  .sec-label:first-child { margin-top: 0; }
+
+  /* PERSON CARD */
+  .person-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
+  .person-card:active { transform: scale(0.985); }
+  .person-card.is-current { border-color: var(--gold); background: var(--surface); box-shadow: 0 2px 12px rgba(146,104,10,0.12); }
+  .rank-badge { width: 26px; height: 26px; border-radius: 50%; background: var(--gold-light); color: var(--gold-dark); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .rank-badge.rank-1 { background: var(--gold); color: #fff; }
+  .av { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .person-info { flex: 1; min-width: 0; }
+  .person-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .person-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .status-pill { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+  .sp-ok { background: var(--green-bg); color: var(--green); }
+  .sp-absent { background: var(--red-bg); color: var(--red); }
+  .sp-catch { background: var(--orange-bg); color: var(--orange); }
+  .sp-current { background: var(--gold); color: #fff; }
+
+  /* BUTTONS */
+  .add-person-btn { width: 100%; padding: 12px; border: 1.5px dashed var(--border-strong); border-radius: var(--radius); background: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--gold); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
+  .btn { width: 100%; padding: 13px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn:active { opacity: 0.85; transform: scale(0.98); }
+  .btn-primary { background: var(--gold); color: #fff; }
+  .btn-outline { background: none; border: 1.5px solid var(--gold); color: var(--gold); margin-top: 8px; }
+  .btn-firebase { background: #FF6D00; color: #fff; margin-top: 8px; }
+
+  /* SWAP CARD */
+  .swap-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .swap-header { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .swap-flow { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface); margin-bottom: 12px; }
+  .swap-arrow { color: var(--gold-mid); font-size: 16px; }
+  .swap-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .swap-role { font-size: 10px; color: var(--text-muted); }
+  .swap-note { font-size: 11px; color: var(--text-muted); background: var(--orange-bg); border-radius: var(--radius-sm); padding: 8px 10px; margin-bottom: 12px; border-left: 3px solid var(--orange); }
+
+  /* RULES */
+  .rules-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .rule-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .rule-row:last-child { border-bottom: none; }
+  .rule-label { font-size: 13px; color: var(--text); }
+  .rule-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .toggle { width: 44px; height: 24px; border-radius: 20px; background: #ddd; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; border: none; padding: 0; }
+  .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+  .toggle.on { background: var(--gold); }
+  .toggle.on::after { left: 22px; }
+
+  /* HISTORIQUE */
+  .hist-item { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .hist-date { font-size: 11px; color: var(--text-muted); min-width: 64px; }
+  .hist-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+
+  /* NOTIFS */
+  .notif-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; }
+  .notif-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .notif-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 20px; }
+  .notif-tag-reminder { background: var(--gold-light); color: var(--gold-dark); }
+  .notif-tag-swap { background: var(--blue-bg); color: var(--blue); }
+  .notif-time { font-size: 10px; color: var(--text-hint); }
+  .notif-body { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+  /* SETTINGS */
+  .settings-section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+  .settings-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-icon { font-size: 20px; width: 28px; text-align: center; }
+  .settings-label { flex: 1; font-size: 14px; color: var(--text); }
+  .settings-value { font-size: 13px; color: var(--text-muted); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(44,31,6,0.45); z-index: 100; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { width: 100%; background: var(--cream); border-radius: 20px 20px 0 0; padding: 0 0 calc(var(--safe-bottom) + 20px); transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.32,0.72,0,1); max-height: 85vh; overflow-y: auto; }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border-strong); margin: 12px auto 16px; }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); padding: 0 20px 16px; border-bottom: 1px solid var(--border); }
+  .modal-body { padding: 20px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .field input, .field select { width: 100%; padding: 12px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); background: #fff; outline: none; -webkit-appearance: none; }
+  .field input:focus, .field select:focus { border-color: var(--gold); }
+  .color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+  .color-dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
+  .color-dot.selected { border-color: var(--text); transform: scale(1.1); }
+
+  /* FIREBASE INFO BOX */
+  .firebase-box { background: #FFF3E0; border: 1px solid #FF6D00; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+  .firebase-box-title { font-size: 13px; font-weight: 600; color: #E65100; margin-bottom: 6px; }
+  .firebase-box-text { font-size: 12px; color: #BF360C; line-height: 1.6; }
+  .firebase-box code { background: rgba(230,81,0,0.12); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 11px; }
+
+  .c1{background:#E8D5B0;color:#6B4C08} .c2{background:#B5D4E0;color:#1A4F7A} .c3{background:#C8E6C9;color:#2D6A4F}
+  .c4{background:#F5C6CB;color:#9B2335} .c5{background:#D8C0E0;color:#5B2C8A} .c6{background:#FFD9A0;color:#8B5E00}
+  .c7{background:#C0E8D5;color:#0F6B4B} .c8{background:#F5D0B5;color:#A84010}
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .tab.active .person-card { animation: fadeUp 0.2s ease both; }
+  .tab.active .person-card:nth-child(1){animation-delay:.02s} .tab.active .person-card:nth-child(2){animation-delay:.05s}
+  .tab.active .person-card:nth-child(3){animation-delay:.08s} .tab.active .person-card:nth-child(4){animation-delay:.11s}
+  .tab.active .person-card:nth-child(5){animation-delay:.14s}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">🥐 Croissants</div>
+      <div class="header-subtitle" id="team-subtitle">Chargement…</div>
+    </div>
+    <button class="header-settings" onclick="openTab('params')">⚙️</button>
+  </div>
+  <div class="next-card">
+    <div class="next-avatar" id="next-avatar">?</div>
+    <div>
+      <div class="next-label">Prochain tour</div>
+      <div class="next-name" id="next-name">—</div>
+      <div class="next-date" id="next-date">—</div>
+    </div>
+    <div class="next-badge" id="next-badge" style="display:none">C'est vous !</div>
+  </div>
+</div>
+
+<!-- SYNC BAR -->
+<div class="sync-bar" id="sync-bar">
+  <div class="sync-dot syncing" id="sync-dot"></div>
+  <span id="sync-label">Connexion à Firebase…</span>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="openTab('rotation')" id="nav-rotation"><span class="nav-icon">📋</span>Liste</button>
+  <button class="nav-btn" onclick="openTab('remplacement')" id="nav-remplacement"><span class="nav-icon">🔄</span>Remplacer</button>
+  <button class="nav-btn" onclick="openTab('historique')" id="nav-historique"><span class="nav-icon">📅</span>Historique</button>
+  <button class="nav-btn" onclick="openTab('rappels')" id="nav-rappels"><span class="nav-icon">🔔</span>Rappels</button>
+  <button class="nav-btn" onclick="openTab('params')" id="nav-params"><span class="nav-icon">⚙️</span>Réglages</button>
+</nav>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ROTATION -->
+  <div class="tab active" id="tab-rotation">
+    <div class="section-pad">
+      <div class="sec-label">Ordre de passage</div>
+      <div id="rotation-list"></div>
+      <button class="add-person-btn" onclick="openAddModal()">➕ Ajouter une personne</button>
+    </div>
+  </div>
+
+  <!-- REMPLACEMENT -->
+  <div class="tab" id="tab-remplacement">
+    <div class="section-pad">
+      <div class="sec-label">Déclarer une absence</div>
+      <div class="swap-card">
+        <div class="swap-header">👤 Qui est absent ?</div>
+        <div class="field" style="margin:0;">
+          <select id="absent-select" onchange="updateSwapPreview()">
+            <option value="">— Choisir une personne —</option>
+          </select>
+        </div>
+      </div>
+      <div id="swap-preview" style="display:none;">
+        <div class="swap-card">
+          <div class="swap-header">🔄 Remplacement proposé</div>
+          <div class="swap-flow" id="swap-flow"></div>
+          <div class="swap-note" id="swap-note"></div>
+          <button class="btn btn-primary" onclick="confirmSwap()">✅ Confirmer — notifier tout le monde</button>
+          <button class="btn btn-outline" onclick="manualSwap()">👥 Choisir manuellement</button>
+        </div>
+      </div>
+      <div class="sec-label">Règles de remplacement</div>
+      <div class="rules-card">
+        <div class="rule-row"><div><div class="rule-label">Remplacement automatique</div><div class="rule-desc">Par le suivant dans la liste</div></div><button class="toggle on" id="toggle-auto" onclick="toggleRule('auto')"></button></div>
+        <div class="rule-row"><div><div class="rule-label">Rattrapage automatique</div><div class="rule-desc">L'absent rattrape à son retour</div></div><button class="toggle on" id="toggle-catch" onclick="toggleRule('catch')"></button></div>
+        <div class="rule-row"><div><div class="rule-label">Échanges manuels libres</div><div class="rule-desc">N'importe qui peut permuter</div></div><button class="toggle" id="toggle-manual" onclick="toggleRule('manual')"></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div class="tab" id="tab-historique">
+    <div class="section-pad">
+      <div class="sec-label">Séances passées</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- RAPPELS -->
+  <div class="tab" id="tab-rappels">
+    <div class="section-pad">
+      <div class="firebase-box">
+        <div class="firebase-box-title">🔔 Notifications Firebase FCM</div>
+        <div class="firebase-box-text">
+          Chaque collègue doit ouvrir l'app et cliquer sur <strong>"Activer les notifications"</strong> pour recevoir les pushs. Son token FCM est alors enregistré dans Firestore sous <code>subscriptions/{userId}</code>.
+          Lors d'un remplacement, une Cloud Function Firebase envoie automatiquement le push à tous les tokens.
+        </div>
+      </div>
+      <button class="btn btn-firebase" onclick="requestFCMPermission()">🔔 Activer les notifications push</button>
+      <div style="margin-top:16px;" id="notif-list"></div>
+      <div class="sec-label">Préférences</div>
+      <div class="rules-card">
+        <div class="rule-row"><div><div class="rule-label">Rappel la veille à 18h</div><div class="rule-desc">Notification push la veille du tour</div></div><button class="toggle on" id="toggle-notif-eve" onclick="toggleNotif('eve')"></button></div>
+        <div class="rule-row"><div><div class="rule-label">Rappel le matin à 7h30</div><div class="rule-desc">Le jour J avant d'aller au bureau</div></div><button class="toggle" id="toggle-notif-morning" onclick="toggleNotif('morning')"></button></div>
+        <div class="rule-row"><div><div class="rule-label">Notifier les remplacements</div><div class="rule-desc">Quand un échange a lieu</div></div><button class="toggle on" id="toggle-notif-swap" onclick="toggleNotif('swap')"></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARAMETRES -->
+  <div class="tab" id="tab-params">
+    <div class="section-pad">
+      <div class="firebase-box">
+        <div class="firebase-box-title">⚙️ Configuration Firebase requise</div>
+        <div class="firebase-box-text">
+          Remplacez les valeurs <code>YOUR_*</code> dans le bloc <code>firebaseConfig</code> ci-dessous (et dans <code>firebase-sw.js</code>) par vos clés issues de la Console Firebase.<br><br>
+          Chemin : <strong>Console Firebase → Paramètres projet → Vos applications → SDK Firebase</strong>
+        </div>
+      </div>
+      <div class="sec-label">Équipe</div>
+      <div class="settings-section">
+        <div class="settings-row"><span class="settings-icon">🏢</span><span class="settings-label">Nom de l'équipe</span><span class="settings-value" id="param-team-name">Mon équipe</span></div>
+        <div class="settings-row" onclick="openTab('rotation')"><span class="settings-icon">👥</span><span class="settings-label">Gérer les membres</span><span class="settings-value" id="param-member-count">0 personnes</span></div>
+      </div>
+      <div class="sec-label">Firebase</div>
+      <div class="settings-section">
+        <div class="settings-row"><span class="settings-icon">🔥</span><span class="settings-label">Statut Firestore</span><span class="settings-value" id="param-firebase-status">—</span></div>
+        <div class="settings-row"><span class="settings-icon">🔔</span><span class="settings-label">Token FCM enregistré</span><span class="settings-value" id="param-fcm-status">Non</span></div>
+        <div class="settings-row" onclick="exportData()"><span class="settings-icon">📤</span><span class="settings-label">Exporter les données JSON</span></div>
+        <div class="settings-row" onclick="resetData()"><span class="settings-icon">🗑️</span><span class="settings-label" style="color:var(--red)">Réinitialiser</span></div>
+      </div>
+      <div style="text-align:center;padding:24px 0 8px;font-size:11px;color:var(--text-hint);">🥐 Croissants du lundi v2.0 — Firebase edition</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJOUTER -->
+<div class="modal-overlay" id="add-modal" onclick="closeModalOutside(event,'add-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ajouter une personne</div>
+    <div class="modal-body">
+      <div class="field"><label>Prénom et nom</label><input type="text" id="add-name" placeholder="ex. Sophie Lemaire" maxlength="40"></div>
+      <div class="field"><label>Initiales (2 lettres)</label><input type="text" id="add-initials" placeholder="SL" maxlength="2" style="text-transform:uppercase"></div>
+      <div class="field"><label>Couleur</label>
+        <div class="color-picker" id="color-picker">
+          <div class="color-dot c1 selected" data-class="c1" onclick="selectColor(this)"></div>
+          <div class="color-dot c2" data-class="c2" onclick="selectColor(this)"></div>
+          <div class="color-dot c3" data-class="c3" onclick="selectColor(this)"></div>
+          <div class="color-dot c4" data-class="c4" onclick="selectColor(this)"></div>
+          <div class="color-dot c5" data-class="c5" onclick="selectColor(this)"></div>
+          <div class="color-dot c6" data-class="c6" onclick="selectColor(this)"></div>
+          <div class="color-dot c7" data-class="c7" onclick="selectColor(this)"></div>
+          <div class="color-dot c8" data-class="c8" onclick="selectColor(this)"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addPerson()">Ajouter ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT -->
+<div class="modal-overlay" id="edit-modal" onclick="closeModalOutside(event,'edit-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="edit-modal-title">Modifier</div>
+    <div class="modal-body">
+      <div class="field"><label>Prénom et nom</label><input type="text" id="edit-name" maxlength="40"></div>
+      <div class="field"><label>Statut</label>
+        <select id="edit-status">
+          <option value="ok">Disponible</option>
+          <option value="absent">Absent</option>
+          <option value="catch">Rattrapage dû</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-primary" onclick="saveEdit()" style="flex:1;">Enregistrer</button>
+        <button class="btn btn-outline" onclick="deletePerson()" style="flex:none;width:auto;padding:13px 18px;color:var(--red);border-color:var(--red);">🗑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REMPLAÇANT MANUEL -->
+<div class="modal-overlay" id="manual-modal" onclick="closeModalOutside(event,'manual-modal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Choisir le remplaçant</div>
+    <div class="modal-body">
+      <div id="manual-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <button class="btn btn-primary" onclick="confirmManualSwap()" style="margin-top:12px;">Confirmer ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPT PRINCIPAL
+     ══════════════════════════════════════════════════════════ -->
+<script>
+
+// ─────────────────────────────────────────────────────────────
+// 1. CONFIGURATION FIREBASE (chargée dynamiquement)
+// ─────────────────────────────────────────────────────────────
+let FIREBASE_CONFIG = {};
+let VAPID_KEY = '';
+const TEAM_ID = "equipe-dev"; // identifiant unique de votre équipe
+
+function initFirebase() {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  window.db = firebase.firestore();
+  window.messaging = firebase.messaging();
+
+  // Collections Firestore
+  window.TEAM_DOC       = db.collection('teams').doc(TEAM_ID);
+  window.PERSONS_COL    = TEAM_DOC.collection('persons');
+  window.HISTORY_COL    = TEAM_DOC.collection('history');
+  window.NOTIFS_COL     = TEAM_DOC.collection('notifications');
+  window.SUBS_COL       = db.collection('subscriptions'); // tokens FCM par user
+}
+
+fetch('config/firebase-config.json')
+  .then(r => r.json())
+  .then(cfg => {
+    FIREBASE_CONFIG = {
+      apiKey: cfg.apiKey,
+      authDomain: cfg.authDomain,
+      projectId: cfg.projectId,
+      storageBucket: cfg.storageBucket,
+      messagingSenderId: cfg.messagingSenderId,
+      appId: cfg.appId
+    };
+    VAPID_KEY = cfg.vapidKey;
+    initFirebase();
+  })
+  .catch(() => {
+    alert('Erreur de chargement de la configuration Firebase.');
+  });
+
+// ─────────────────────────────────────────────────────────────
+// 3. STATE LOCAL (cache de ce qu'on a reçu de Firestore)
+// ─────────────────────────────────────────────────────────────
+let state = {
+  teamName: 'Mon équipe',
+  day: 1,
+  currentIndex: 0,
+  persons: [],
+  history: [],
+  notifications: [],
+  rules: { auto: true, catch: true, manual: false },
+  notifPrefs: { eve: true, morning: false, swap: true }
+};
+
+let editingIndex  = null;
+let selectedColor = 'c1';
+let swapAbsentIndex    = null;
+let manualSelectedIndex = null;
+
+// ─────────────────────────────────────────────────────────────
+// 4. SYNC FIRESTORE → STATE (listeners temps réel)
+// ─────────────────────────────────────────────────────────────
+function initFirestoreListeners() {
+  setSyncStatus('syncing', 'Synchronisation…');
+
+  // Document principal de l'équipe (config, règles, index)
+  TEAM_DOC.onSnapshot((doc) => {
+    if (doc.exists) {
+      const d = doc.data();
+      state.teamName    = d.teamName    ?? state.teamName;
+      state.day         = d.day         ?? state.day;
+      state.currentIndex = d.currentIndex ?? state.currentIndex;
+      state.rules       = d.rules       ?? state.rules;
+    }
+    renderHeader();
+    renderParams();
+    setSyncStatus('online', 'Synchronisé avec Firebase');
+  }, () => setSyncStatus('offline', 'Hors ligne — données locales'));
+
+  // Liste des personnes
+  PERSONS_COL.orderBy('rank').onSnapshot((snap) => {
+    state.persons = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderRotation();
+    renderAbsentSelect();
+    renderHeader();
+  });
+
+  // Historique (10 derniers)
+  HISTORY_COL.orderBy('timestamp', 'desc').limit(10).onSnapshot((snap) => {
+    state.history = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderHistory();
+  });
+
+  // Notifications (10 dernières)
+  NOTIFS_COL.orderBy('timestamp', 'desc').limit(10).onSnapshot((snap) => {
+    state.notifications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderNotifs();
+  });
+}
+
+function setSyncStatus(status, label) {
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot ' + status;
+  document.getElementById('sync-label').textContent = label;
+  document.getElementById('param-firebase-status').textContent =
+    status === 'online' ? '✅ Connecté' : status === 'offline' ? '❌ Hors ligne' : '⏳ Syncing';
+}
+
+// ─────────────────────────────────────────────────────────────
+// 5. ÉCRITURE FIRESTORE
+// ─────────────────────────────────────────────────────────────
+async function saveTeamConfig() {
+  await TEAM_DOC.set({
+    teamName: state.teamName,
+    day: state.day,
+    currentIndex: state.currentIndex,
+    rules: state.rules,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+async function addPersonToFirestore(person) {
+  const rank = state.persons.length; // sera le dernier
+  await PERSONS_COL.add({ ...person, rank, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+}
+
+async function updatePersonInFirestore(id, data) {
+  await PERSONS_COL.doc(id).update({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+}
+
+async function deletePersonFromFirestore(id) {
+  await PERSONS_COL.doc(id).delete();
+}
+
+async function addHistoryEntry(entry) {
+  await HISTORY_COL.add({ ...entry, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+}
+
+// ─────────────────────────────────────────────────────────────
+// 6. NOTIFICATIONS FCM
+//    Chaque utilisateur s'abonne : son token est stocké dans
+//    Firestore sous subscriptions/{teamId}_{userId}
+//    Une Cloud Function Firebase (à déployer séparément) lit
+//    ces tokens et envoie le push via l'API FCM Admin SDK.
+// ─────────────────────────────────────────────────────────────
+async function requestFCMPermission() {
+  if (!('Notification' in window)) {
+    alert('Notifications non supportées sur ce navigateur.'); return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    alert('❌ Permission refusée. Activez les notifications dans les réglages du navigateur.'); return;
+  }
+  try {
+    // Enregistrement du Service Worker Firebase
+    const reg = await navigator.serviceWorker.register('./firebase-sw.js');
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+
+    // Stockage du token dans Firestore (identifié par teamId + fingerprint)
+    const userId = getUserId();
+    await SUBS_COL.doc(TEAM_ID + '_' + userId).set({
+      token,
+      teamId: TEAM_ID,
+      userId,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    localStorage.setItem('fcm_token', token);
+    document.getElementById('param-fcm-status').textContent = 'Oui ✅';
+    alert('✅ Notifications activées ! Vous recevrez un push lors des remplacements.');
+  } catch(e) {
+    console.error('FCM error:', e);
+    alert('❌ Erreur FCM : ' + e.message + '\n\nVérifiez que VAPID_KEY et firebase-sw.js sont bien configurés.');
+  }
+}
+
+// ID utilisateur simple (persisté en localStorage)
+function getUserId() {
+  let id = localStorage.getItem('user_id');
+  if (!id) { id = 'user_' + Math.random().toString(36).slice(2,9); localStorage.setItem('user_id', id); }
+  return id;
+}
+
+// Réception des messages en foreground (app ouverte)
+messaging.onMessage((payload) => {
+  const { title, body } = payload.notification ?? {};
+  // Afficher dans l'UI
+  state.notifications.unshift({ tag: 'swap', label: '🔔 Notification', time: 'À l\'instant', text: body ?? title });
+  renderNotifs();
+  openTab('rappels');
+});
+
+// ─────────────────────────────────────────────────────────────
+// 7. RENDER
+// ─────────────────────────────────────────────────────────────
+const DAYS = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+
+function nextOccurrence(dayOfWeek) {
+  const now = new Date(), today = now.getDay();
+  let diff = dayOfWeek - today;
+  if (diff <= 0) diff += 7;
+  const d = new Date(now); d.setDate(now.getDate() + diff);
+  return d;
+}
+
+function getNextActiveIndex() {
+  const n = state.persons.length; if (!n) return -1;
+  let i = state.currentIndex % n;
+  for (let k = 0; k < n; k++) { if (state.persons[i].status !== 'absent') return i; i = (i+1)%n; }
+  return state.currentIndex % n;
+}
+
+function renderHeader() {
+  document.getElementById('team-subtitle').textContent = state.teamName + ' — ' + state.persons.length + ' personnes';
+  const idx = getNextActiveIndex(); if (idx < 0) return;
+  const p = state.persons[idx], d = nextOccurrence(state.day);
+  document.getElementById('next-avatar').textContent = p.initials;
+  document.getElementById('next-name').textContent   = p.name;
+  document.getElementById('next-date').textContent   = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}) + ' — dans ' + Math.ceil((d-new Date())/86400000) + ' jours';
+  document.getElementById('next-badge').style.display = idx === 0 ? '' : 'none';
+}
+
+function renderRotation() {
+  const list = document.getElementById('rotation-list');
+  const nextIdx = getNextActiveIndex();
+  list.innerHTML = '';
+  state.persons.forEach((p, i) => {
+    const isCurrent = i === nextIdx;
+    const statusClass = p.status==='absent'?'sp-absent':p.status==='catch'?'sp-catch':(isCurrent?'sp-current':'sp-ok');
+    const statusLabel = p.status==='absent'?'Absent':p.status==='catch'?'Rattrapage':(isCurrent?'Prochain !':'OK');
+    const d = nextOccurrence(state.day); d.setDate(d.getDate()+i*7);
+    list.innerHTML += `
+      <div class="person-card ${isCurrent?'is-current':''}" onclick="openEditModal(${i})">
+        <div class="rank-badge ${i===0?'rank-1':''}">${i+1}</div>
+        <div class="av ${p.color}">${p.initials}</div>
+        <div class="person-info">
+          <div class="person-name">${p.name}</div>
+          <div class="person-meta">${d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
+        </div>
+        <span class="status-pill ${statusClass}">${statusLabel}</span>
+      </div>`;
+  });
+  document.getElementById('param-member-count').textContent = state.persons.length + ' personnes';
+}
+
+function renderAbsentSelect() {
+  const sel = document.getElementById('absent-select');
+  sel.innerHTML = '<option value="">— Choisir une personne —</option>';
+  state.persons.forEach((p,i) => sel.innerHTML += `<option value="${i}">${p.name}</option>`);
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  if (!state.history.length) { list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-hint);font-size:13px;">Aucun historique</div>'; return; }
+  state.history.forEach(h => {
+    const sp = h.status==='absent'?'sp-absent':'sp-ok', sl = h.status==='absent'?'Remplacé':'Fait ✓';
+    const dateStr = h.timestamp?.toDate?.().toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) ?? h.date ?? '—';
+    list.innerHTML += `<div class="hist-item"><span class="hist-date">${dateStr}</span><div class="av ${h.color??'c1'}" style="width:30px;height:30px;font-size:11px">${h.initials??'?'}</div><span class="hist-name">${h.name}</span><span class="status-pill ${sp}">${sl}</span></div>`;
+  });
+}
+
+function renderNotifs() {
+  const list = document.getElementById('notif-list');
+  list.innerHTML = '';
+  if (!state.notifications.length) { list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-hint);font-size:13px;">Aucune notification</div>'; return; }
+  state.notifications.forEach(n => {
+    const tagClass = n.tag==='reminder'?'notif-tag-reminder':'notif-tag-swap';
+    const timeStr  = n.timestamp?.toDate?.().toLocaleString('fr-FR',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}) ?? n.time ?? '';
+    list.innerHTML += `<div class="notif-card"><div class="notif-top"><span class="notif-tag ${tagClass}">${n.label}</span><span class="notif-time">${timeStr}</span></div><div class="notif-body">${n.text}</div></div>`;
+  });
+}
+
+function renderParams() {
+  document.getElementById('param-team-name').textContent = state.teamName;
+  document.getElementById('param-fcm-status').textContent = localStorage.getItem('fcm_token') ? 'Oui ✅' : 'Non';
+}
+
+// ─────────────────────────────────────────────────────────────
+// 8. ACTIONS UTILISATEUR
+// ─────────────────────────────────────────────────────────────
+
+// Ajouter personne
+function openAddModal() {
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-initials').value = '';
+  selectedColor = 'c1';
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('selected', d.dataset.class==='c1'));
+  openModal('add-modal');
+}
+function selectColor(el) {
+  selectedColor = el.dataset.class;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+async function addPerson() {
+  const name = document.getElementById('add-name').value.trim();
+  const initials = document.getElementById('add-initials').value.trim().toUpperCase().slice(0,2);
+  if (!name || !initials) { alert('Merci de remplir le nom et les initiales.'); return; }
+  await addPersonToFirestore({ name, initials, color: selectedColor, status: 'ok' });
+  closeModal('add-modal');
+}
+
+// Éditer personne
+function openEditModal(i) {
+  editingIndex = i;
+  const p = state.persons[i];
+  document.getElementById('edit-modal-title').textContent = p.name;
+  document.getElementById('edit-name').value = p.name;
+  document.getElementById('edit-status').value = p.status;
+  openModal('edit-modal');
+}
+async function saveEdit() {
+  if (editingIndex === null) return;
+  const p = state.persons[editingIndex];
+  await updatePersonInFirestore(p.id, {
+    name:   document.getElementById('edit-name').value.trim() || p.name,
+    status: document.getElementById('edit-status').value
+  });
+  closeModal('edit-modal');
+}
+async function deletePerson() {
+  if (editingIndex === null) return;
+  if (!confirm('Supprimer ' + state.persons[editingIndex].name + ' ?')) return;
+  await deletePersonFromFirestore(state.persons[editingIndex].id);
+  closeModal('edit-modal');
+}
+
+// Remplacement
+function updateSwapPreview() {
+  const val = document.getElementById('absent-select').value;
+  if (!val) { document.getElementById('swap-preview').style.display='none'; return; }
+  swapAbsentIndex = parseInt(val);
+  const absent = state.persons[swapAbsentIndex];
+  const replIdx = (swapAbsentIndex + 1) % state.persons.length;
+  const repl    = state.persons[replIdx];
+  document.getElementById('swap-flow').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px"><div class="av ${absent.color}" style="width:32px;height:32px;font-size:12px">${absent.initials}</div><div><div class="swap-name">${absent.name}</div><div class="swap-role">Absent</div></div></div>
+    <span class="swap-arrow">→</span>
+    <div style="display:flex;align-items:center;gap:8px"><div class="av ${repl.color}" style="width:32px;height:32px;font-size:12px">${repl.initials}</div><div><div class="swap-name">${repl.name}</div><div class="swap-role">Remplaçant</div></div></div>`;
+  document.getElementById('swap-note').textContent = state.rules.catch ? absent.name + ' rattrapera à son retour.' : 'Pas de rattrapage prévu.';
+  document.getElementById('swap-preview').style.display = 'block';
+}
+
+async function confirmSwap(replIdx) {
+  if (swapAbsentIndex === null) return;
+  const n       = state.persons.length;
+  const absent  = state.persons[swapAbsentIndex];
+  const ri      = replIdx ?? (swapAbsentIndex + 1) % n;
+  const repl    = state.persons[ri];
+
+  // Mettre à jour les statuts dans Firestore
+  await updatePersonInFirestore(absent.id, { status: state.rules.catch ? 'catch' : 'ok' });
+
+  // Ajouter à l'historique
+  await addHistoryEntry({ name: absent.name, initials: absent.initials, color: absent.color, status: 'absent', replacedBy: repl.name });
+
+  // Ajouter une notification visible dans l'app
+  await NOTIFS_COL.add({
+    tag: 'swap', label: '🔄 Remplacement',
+    text: `${absent.name} remplacé(e) par ${repl.name}`,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  // ⚠️  Le push FCM vers les collègues est déclenché ici via une Cloud Function Firebase.
+  //     La Cloud Function écoute les nouveaux documents dans NOTIFS_COL et envoie le push.
+  //     Voir : https://firebase.google.com/docs/functions/firestore-events
+  //     Exemple de Cloud Function à déployer (Node.js) :
+  //
+  //     exports.onNewNotification = onDocumentCreated('teams/{teamId}/notifications/{notifId}', async (event) => {
+  //       const { text } = event.data.data();
+  //       const subs = await db.collection('subscriptions').where('teamId','==',event.params.teamId).get();
+  //       const tokens = subs.docs.map(d => d.data().token);
+  //       await getMessaging().sendEachForMulticast({ tokens, notification: { title:'🥐 Croissants', body: text } });
+  //     });
+
+  document.getElementById('absent-select').value = '';
+  document.getElementById('swap-preview').style.display = 'none';
+  closeModal('manual-modal');
+  alert('✅ Remplacement enregistré ! Vos collègues vont recevoir une notification push.');
+}
+
+function manualSwap() {
+  if (swapAbsentIndex === null) return;
+  const ml = document.getElementById('manual-list');
+  ml.innerHTML = ''; manualSelectedIndex = null;
+  state.persons.forEach((p, i) => {
+    if (i === swapAbsentIndex) return;
+    ml.innerHTML += `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:#fff" onclick="selectManual(this,${i})">
+      <div class="av ${p.color}" style="width:36px;height:36px;font-size:13px">${p.initials}</div>
+      <div><div style="font-size:14px;font-weight:500">${p.name}</div><div style="font-size:11px;color:var(--text-muted)">${p.status==='catch'?'⚠️ Rattrapage en cours':p.status==='absent'?'Absent':'Disponible'}</div></div>
+    </div>`;
+  });
+  openModal('manual-modal');
+}
+function selectManual(el, idx) {
+  manualSelectedIndex = idx;
+  document.querySelectorAll('#manual-list > div').forEach(i => i.style.background='#fff');
+  el.style.background = 'var(--gold-light)'; el.style.borderColor = 'var(--gold)';
+}
+async function confirmManualSwap() {
+  if (manualSelectedIndex === null) { alert('Sélectionnez un remplaçant.'); return; }
+  await confirmSwap(manualSelectedIndex);
+}
+
+// Règles & préférences notifs
+function toggleRule(key) {
+  state.rules[key] = !state.rules[key];
+  document.getElementById('toggle-'+key).classList.toggle('on', state.rules[key]);
+  saveTeamConfig();
+}
+function toggleNotif(key) {
+  state.notifPrefs[key] = !state.notifPrefs[key];
+  document.getElementById('toggle-notif-'+key).classList.toggle('on', state.notifPrefs[key]);
+}
+
+// Export / Reset
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'croissants_export.json'; a.click();
+}
+async function resetData() {
+  if (!confirm('Réinitialiser toutes les données Firestore ? Action irréversible.')) return;
+  const batch = db.batch();
+  (await PERSONS_COL.get()).forEach(d => batch.delete(d.ref));
+  (await HISTORY_COL.get()).forEach(d => batch.delete(d.ref));
+  (await NOTIFS_COL.get()).forEach(d => batch.delete(d.ref));
+  await batch.commit();
+  await TEAM_DOC.delete();
+  alert('Données effacées.');
+}
+
+// ─────────────────────────────────────────────────────────────
+// 9. UTILS NAVIGATION & MODALS
+// ─────────────────────────────────────────────────────────────
+function openTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+}
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOutside(e, id) { if (e.target.id===id) closeModal(id); }
+
+// ─────────────────────────────────────────────────────────────
+// 10. INIT
+// ─────────────────────────────────────────────────────────────
+initFirestoreListeners();
+// Vérifier token FCM existant
+if (localStorage.getItem('fcm_token')) {
+  document.getElementById('param-fcm-status').textContent = 'Oui ✅';
+}
+</script>
+</body>
+</html>
