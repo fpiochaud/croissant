@@ -31,6 +31,13 @@ jobs:
           mkdir bt
           cp -r croissant-app/* bt/
 
+      - name: Log contenu du dossier bt
+        run: |
+          echo "Contenu du dossier bt :"
+          ls -l bt
+          echo "Contenu du dossier bt/config :"
+          ls -l bt/config
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
