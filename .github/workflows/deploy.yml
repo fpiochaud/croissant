@@ -40,14 +40,6 @@ jobs:
       - name: Copier index.html à la racine
         run: cp croissant-app/index.html public/index.html
 
-      - name: Clean gh-pages branch
-        run: |
-          git fetch origin gh-pages || true
-          git checkout gh-pages || git checkout --orphan gh-pages
-          git rm -rf . || true
-          git clean -fdx || true
-          git checkout main
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
