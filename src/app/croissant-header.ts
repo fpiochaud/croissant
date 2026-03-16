@@ -1,9 +1,10 @@
 import { Component, computed } from '@angular/core';
+import { NgIf } from '@angular/common';
 import { CroissantService } from './croissant.service';
 
 @Component({
   selector: 'croissant-header',
-  imports: [],
+  imports: [NgIf],
   templateUrl: './croissant-header.html',
   styleUrl: './croissant-header.css',
 })

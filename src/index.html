@@ -1,47 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Croissants">
-<meta name="theme-color" content="#92680A">
-<title>🥐 Croissants du lundi</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
-<!-- ══════════════════════════════════════════════════════════
-     SDK Firebase (compat pour simplicité, pas besoin de bundler)
-     ══════════════════════════════════════════════════════════ -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
-
-<style>
-  :root {
-    --gold: #92680A; --gold-light: #F5E6C8; --gold-dark: #6B4C08; --gold-mid: #C49020;
-    --cream: #FFFBF4; --surface: #FFF8EC;
-    --border: rgba(146,104,10,0.15); --border-strong: rgba(146,104,10,0.3);
-    --text: #2C1F06; --text-muted: #7A6040; --text-hint: #B09060;
-    --green: #2D6A4F; --green-bg: #D8F3DC;
-    --orange: #A84010; --orange-bg: #FDEBD0;
-    --blue: #1A4F7A; --blue-bg: #DBEAFE;
-    --red: #9B2335; --red-bg: #FDE8EC;
-    --radius: 14px; --radius-sm: 8px;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100dvh; overflow-x: hidden; }
-
-  /* HEADER */
-  .header { background: linear-gradient(160deg, var(--gold-dark) 0%, var(--gold) 60%, var(--gold-mid) 100%); padding: calc(var(--safe-top) + 20px) 20px 24px; position: relative; overflow: hidden; }
-  .header::before { content: '🥐'; position: absolute; right: -10px; top: -10px; font-size: 120px; opacity: 0.08; transform: rotate(-20deg); pointer-events: none; }
-</style>
-</head>
-<body>
-  <!-- Le contenu Angular sera injecté ici -->
-  <app-root></app-root>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>🥐 Croissants du lundi</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Croissants" />
+    <meta name="theme-color" content="#92680A" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
 </html>

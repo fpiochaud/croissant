@@ -87,4 +87,10 @@ export class CroissantModaux {
       this.editPerson = null;
     }
   }
+
+  confirmManualSwap() {
+    // TODO: implémenter la confirmation du remplacement manuel
+    this.showAddModal.set(false);
+    this.showEditModal.set(false);
+  }
 }

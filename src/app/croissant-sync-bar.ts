@@ -1,9 +1,10 @@
 import { Component, computed } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { CroissantService } from './croissant.service';
 
 @Component({
   selector: 'croissant-sync-bar',
-  imports: [],
+  imports: [NgClass],
   templateUrl: './croissant-sync-bar.html',
   styleUrl: './croissant-sync-bar.css',
 })

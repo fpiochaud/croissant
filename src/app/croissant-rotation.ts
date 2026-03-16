@@ -1,16 +1,16 @@
-  selectedPerson: Person | null = null;
-
 import { Component, computed, inject } from '@angular/core';
+import { NgFor } from '@angular/common';
 import { CroissantService, Person } from './croissant.service';
 import { CroissantModaux } from './croissant-modaux';
 
 @Component({
   selector: 'croissant-rotation',
-  imports: [],
+  imports: [NgFor],
   templateUrl: './croissant-rotation.html',
   styleUrl: './croissant-rotation.css',
 })
 export class CroissantRotation {
+  selectedPerson: Person | null = null;
   persons = computed(() => this.croissant.state().persons);
   modaux = inject(CroissantModaux, { optional: true });
 

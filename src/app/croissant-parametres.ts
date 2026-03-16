@@ -12,6 +12,10 @@ export class CroissantParametres {
   memberCount = computed(() => this.croissant.state().persons.length);
   constructor(public croissant: CroissantService) {}
 
+  openTab(tab: 'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params') {
+    this.croissant.openTab(tab);
+  }
+
   exportData() {
     const data = JSON.stringify(this.croissant.state(), null, 2);
     const blob = new Blob([data], { type: 'application/json' });

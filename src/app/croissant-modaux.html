@@ -1,5 +1,5 @@
 <!-- MODAL AJOUTER -->
-<div class="modal-overlay" id="add-modal" (click)="closeModalOutside($event,'add-modal')">
+<div class="modal-overlay" [class.open]="showAddModal()" id="add-modal" (click)="closeModalOutside($event,'add-modal')">
 	<div class="modal">
 		<div class="modal-handle"></div>
 		<div class="modal-title">Ajouter une personne</div>
@@ -24,7 +24,7 @@
 </div>
 
 <!-- MODAL EDIT -->
-<div class="modal-overlay" id="edit-modal" (click)="closeModalOutside($event,'edit-modal')">
+<div class="modal-overlay" [class.open]="showEditModal()" id="edit-modal" (click)="closeModalOutside($event,'edit-modal')">
 	<div class="modal">
 		<div class="modal-handle"></div>
 		<div class="modal-title" id="edit-modal-title">Modifier</div>
@@ -46,7 +46,7 @@
 </div>
 
 <!-- MODAL REMPLAÇANT MANUEL -->
-<div class="modal-overlay" id="manual-modal" (click)="closeModalOutside($event,'manual-modal')">
+<div class="modal-overlay" id="manual-modal" (click)="closeModalOutside($event,'manual-modal')" style="display:none">
 	<div class="modal">
 		<div class="modal-handle"></div>
 		<div class="modal-title">Choisir le remplaçant</div>

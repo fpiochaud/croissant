@@ -1,9 +1,9 @@
-<div class="tab" id="tab-rappels">
+<div class="tab" [class.active]="croissant.activeTab() === 'rappels'" id="tab-rappels">
 	<div class="section-pad">
 		<div class="firebase-box">
 			<div class="firebase-box-title">🔔 Notifications Firebase FCM</div>
 			<div class="firebase-box-text">
-				Chaque collègue doit ouvrir l'app et cliquer sur <strong>"Activer les notifications"</strong> pour recevoir les pushs. Son token FCM est alors enregistré dans Firestore sous <code>subscriptions/{userId}</code>.
+				Chaque collègue doit ouvrir l'app et cliquer sur <strong>"Activer les notifications"</strong> pour recevoir les pushs. Son token FCM est alors enregistré dans Firestore sous <code>subscriptions/&#123;userId&#125;</code>.
 				Lors d'un remplacement, une Cloud Function Firebase envoie automatiquement le push à tous les tokens.
 			</div>
 		</div>

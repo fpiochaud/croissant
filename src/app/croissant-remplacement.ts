@@ -1,9 +1,10 @@
 import { Component, computed, signal } from '@angular/core';
+import { NgFor } from '@angular/common';
 import { CroissantService, Person } from './croissant.service';
 
 @Component({
   selector: 'croissant-remplacement',
-  imports: [],
+  imports: [NgFor],
   templateUrl: './croissant-remplacement.html',
   styleUrl: './croissant-remplacement.css',
 })
