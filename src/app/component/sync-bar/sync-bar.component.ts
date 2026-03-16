@@ -1,15 +1,14 @@
 import { Component, computed } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { CroissantService } from './croissant.service';
+import { CroissantService } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-sync-bar',
   imports: [NgClass],
-  templateUrl: './croissant-sync-bar.html',
-  styleUrl: './croissant-sync-bar.css',
+  templateUrl: './sync-bar.component.html',
+  styleUrl: './sync-bar.component.css',
 })
-export class CroissantSyncBar {
-  // À remplacer par la vraie logique de sync Firebase
+export class SyncBarComponent {
   syncStatus = computed(() => 'syncing');
   syncLabel = computed(() => 'Connexion à Firebase…');
 

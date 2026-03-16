@@ -1,28 +1,28 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { CroissantHeader } from './croissant-header';
-import { CroissantSyncBar } from './croissant-sync-bar';
-import { CroissantNavigation } from './croissant-navigation';
-import { CroissantRotation } from './croissant-rotation';
-import { CroissantRemplacement } from './croissant-remplacement';
-import { CroissantHistorique } from './croissant-historique';
-import { CroissantRappels } from './croissant-rappels';
-import { CroissantParametres } from './croissant-parametres';
-import { CroissantModaux } from './croissant-modaux';
+import { HeaderComponent } from './component/header/header.component';
+import { SyncBarComponent } from './component/sync-bar/sync-bar.component';
+import { NavigationComponent } from './component/navigation/navigation.component';
+import { RotationComponent } from './component/rotation/rotation.component';
+import { RemplacementComponent } from './component/remplacement/remplacement.component';
+import { HistoriqueComponent } from './component/historique/historique.component';
+import { RappelsComponent } from './component/rappels/rappels.component';
+import { ParametresComponent } from './component/parametres/parametres.component';
+import { ModauxComponent } from './component/modaux/modaux.component';
 
 @Component({
   selector: 'app-root',
   imports: [
     RouterOutlet,
-    CroissantHeader,
-    CroissantSyncBar,
-    CroissantNavigation,
-    CroissantRotation,
-    CroissantRemplacement,
-    CroissantHistorique,
-    CroissantRappels,
-    CroissantParametres,
-    CroissantModaux,
+    HeaderComponent,
+    SyncBarComponent,
+    NavigationComponent,
+    RotationComponent,
+    RemplacementComponent,
+    HistoriqueComponent,
+    RappelsComponent,
+    ParametresComponent,
+    ModauxComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',

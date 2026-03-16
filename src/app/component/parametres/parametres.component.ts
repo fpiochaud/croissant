@@ -1,13 +1,13 @@
 import { Component, computed } from '@angular/core';
-import { CroissantService } from './croissant.service';
+import { CroissantService } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-parametres',
   imports: [],
-  templateUrl: './croissant-parametres.html',
-  styleUrl: './croissant-parametres.css',
+  templateUrl: './parametres.component.html',
+  styleUrl: './parametres.component.css',
 })
-export class CroissantParametres {
+export class ParametresComponent {
   teamName = computed(() => this.croissant.state().teamName);
   memberCount = computed(() => this.croissant.state().persons.length);
   constructor(public croissant: CroissantService) {}
@@ -29,7 +29,7 @@ export class CroissantParametres {
 
   resetData() {
     if (confirm('Réinitialiser toutes les données ?')) {
-      location.reload(); // Pour la démo, recharger (remplacer par reset state réel si besoin)
+      location.reload();
     }
   }
 }

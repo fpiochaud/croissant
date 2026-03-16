@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
-import { CroissantService } from './croissant.service';
+import { CroissantService } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-navigation',
   imports: [],
-  templateUrl: './croissant-navigation.html',
-  styleUrl: './croissant-navigation.css',
+  templateUrl: './navigation.component.html',
+  styleUrl: './navigation.component.css',
 })
-export class CroissantNavigation {
+export class NavigationComponent {
   croissant = inject(CroissantService);
   activeTab = this.croissant.activeTab;
 

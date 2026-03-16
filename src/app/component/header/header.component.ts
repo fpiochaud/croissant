@@ -1,14 +1,14 @@
 import { Component, computed } from '@angular/core';
 import { NgIf } from '@angular/common';
-import { CroissantService } from './croissant.service';
+import { CroissantService } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-header',
   imports: [NgIf],
-  templateUrl: './croissant-header.html',
-  styleUrl: './croissant-header.css',
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.css',
 })
-export class CroissantHeader {
+export class HeaderComponent {
   teamName = computed(() => this.croissant.state().teamName);
   nextName = computed(() => {
     const s = this.croissant.state();

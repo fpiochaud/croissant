@@ -1,21 +1,19 @@
 import { Component, signal, effect } from '@angular/core';
-import { CroissantService, Person } from './croissant.service';
+import { CroissantService, Person } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-modaux',
   imports: [],
-  templateUrl: './croissant-modaux.html',
-  styleUrl: './croissant-modaux.css',
+  templateUrl: './modaux.component.html',
+  styleUrl: './modaux.component.css',
 })
-export class CroissantModaux {
-  // Signaux pour l'état des modaux
+export class ModauxComponent {
   showAddModal = signal(false);
   showEditModal = signal(false);
   editPerson: Person | null = null;
   color = signal('c1');
 
   constructor(public croissant: CroissantService) {
-    // Effet pour fermer les modaux si la personne éditée n'existe plus
     effect(() => {
       if (this.editPerson && !this.croissant.state().persons.find(p => p.id === this.editPerson?.id)) {
         this.showEditModal.set(false);

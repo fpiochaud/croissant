@@ -1,23 +1,22 @@
 import { Component, computed, inject } from '@angular/core';
 import { NgFor } from '@angular/common';
-import { CroissantService, Person } from './croissant.service';
-import { CroissantModaux } from './croissant-modaux';
+import { CroissantService, Person } from '../../croissant.service';
+import { ModauxComponent } from '../modaux/modaux.component';
 
 @Component({
   selector: 'croissant-rotation',
   imports: [NgFor],
-  templateUrl: './croissant-rotation.html',
-  styleUrl: './croissant-rotation.css',
+  templateUrl: './rotation.component.html',
+  styleUrl: './rotation.component.css',
 })
-export class CroissantRotation {
+export class RotationComponent {
   selectedPerson: Person | null = null;
   persons = computed(() => this.croissant.state().persons);
-  modaux = inject(CroissantModaux, { optional: true });
+  modaux = inject(ModauxComponent, { optional: true });
 
   constructor(public croissant: CroissantService) {}
 
   openAddModal() {
-    // Ouvre le modal d'ajout via le composant modaux
     if (this.modaux) this.modaux.openAddModal();
   }
 

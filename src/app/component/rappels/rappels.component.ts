@@ -1,13 +1,13 @@
 import { Component, computed } from '@angular/core';
-import { CroissantService } from './croissant.service';
+import { CroissantService } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-rappels',
   imports: [],
-  templateUrl: './croissant-rappels.html',
-  styleUrl: './croissant-rappels.css',
+  templateUrl: './rappels.component.html',
+  styleUrl: './rappels.component.css',
 })
-export class CroissantRappels {
+export class RappelsComponent {
   notifPrefs = computed(() => this.croissant.state().notifPrefs);
   notifications = computed(() => this.croissant.state().notifications);
   fcmEnabled = false;
@@ -15,7 +15,6 @@ export class CroissantRappels {
   constructor(public croissant: CroissantService) {}
 
   requestFCMPermission() {
-    // Simulation d'activation FCM
     this.fcmEnabled = true;
     alert('Notifications push activées (simulation)');
   }
