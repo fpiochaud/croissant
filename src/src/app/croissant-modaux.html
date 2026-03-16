@@ -1,0 +1,58 @@
+<!-- MODAL AJOUTER -->
+<div class="modal-overlay" id="add-modal" (click)="closeModalOutside($event,'add-modal')">
+	<div class="modal">
+		<div class="modal-handle"></div>
+		<div class="modal-title">Ajouter une personne</div>
+		<div class="modal-body">
+			<div class="field"><label>Prénom et nom</label><input type="text" id="add-name" placeholder="ex. Sophie Lemaire" maxlength="40"></div>
+			<div class="field"><label>Initiales (2 lettres)</label><input type="text" id="add-initials" placeholder="SL" maxlength="2" style="text-transform:uppercase"></div>
+			<div class="field"><label>Couleur</label>
+				<div class="color-picker" id="color-picker">
+					<div class="color-dot c1 selected" data-class="c1" (click)="selectColor($event)"></div>
+					<div class="color-dot c2" data-class="c2" (click)="selectColor($event)"></div>
+					<div class="color-dot c3" data-class="c3" (click)="selectColor($event)"></div>
+					<div class="color-dot c4" data-class="c4" (click)="selectColor($event)"></div>
+					<div class="color-dot c5" data-class="c5" (click)="selectColor($event)"></div>
+					<div class="color-dot c6" data-class="c6" (click)="selectColor($event)"></div>
+					<div class="color-dot c7" data-class="c7" (click)="selectColor($event)"></div>
+					<div class="color-dot c8" data-class="c8" (click)="selectColor($event)"></div>
+				</div>
+			</div>
+			<button class="btn btn-primary" (click)="addPerson()">Ajouter ✓</button>
+		</div>
+	</div>
+</div>
+
+<!-- MODAL EDIT -->
+<div class="modal-overlay" id="edit-modal" (click)="closeModalOutside($event,'edit-modal')">
+	<div class="modal">
+		<div class="modal-handle"></div>
+		<div class="modal-title" id="edit-modal-title">Modifier</div>
+		<div class="modal-body">
+			<div class="field"><label>Prénom et nom</label><input type="text" id="edit-name" maxlength="40"></div>
+			<div class="field"><label>Statut</label>
+				<select id="edit-status">
+					<option value="ok">Disponible</option>
+					<option value="absent">Absent</option>
+					<option value="catch">Rattrapage dû</option>
+				</select>
+			</div>
+			<div style="display:flex;gap:8px;margin-top:8px;">
+				<button class="btn btn-primary" (click)="saveEdit()" style="flex:1;">Enregistrer</button>
+				<button class="btn btn-outline" (click)="deletePerson()" style="flex:none;width:auto;padding:13px 18px;color:var(--red);border-color:var(--red);">🗑</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- MODAL REMPLAÇANT MANUEL -->
+<div class="modal-overlay" id="manual-modal" (click)="closeModalOutside($event,'manual-modal')">
+	<div class="modal">
+		<div class="modal-handle"></div>
+		<div class="modal-title">Choisir le remplaçant</div>
+		<div class="modal-body">
+			<div id="manual-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+			<button class="btn btn-primary" (click)="confirmManualSwap()" style="margin-top:12px;">Confirmer ✓</button>
+		</div>
+	</div>
+</div>

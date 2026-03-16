@@ -1,0 +1,7 @@
+<nav class="nav">
+	<button class="nav-btn" [class.active]="activeTab() === 'rotation'" (click)="openTab('rotation')"><span class="nav-icon">📋</span>Liste</button>
+	<button class="nav-btn" [class.active]="activeTab() === 'remplacement'" (click)="openTab('remplacement')"><span class="nav-icon">🔄</span>Remplacer</button>
+	<button class="nav-btn" [class.active]="activeTab() === 'historique'" (click)="openTab('historique')"><span class="nav-icon">📅</span>Historique</button>
+	<button class="nav-btn" [class.active]="activeTab() === 'rappels'" (click)="openTab('rappels')"><span class="nav-icon">🔔</span>Rappels</button>
+	<button class="nav-btn" [class.active]="activeTab() === 'params'" (click)="openTab('params')"><span class="nav-icon">⚙️</span>Réglages</button>
+</nav>

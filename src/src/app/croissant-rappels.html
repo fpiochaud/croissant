@@ -1,0 +1,19 @@
+<div class="tab" id="tab-rappels">
+	<div class="section-pad">
+		<div class="firebase-box">
+			<div class="firebase-box-title">🔔 Notifications Firebase FCM</div>
+			<div class="firebase-box-text">
+				Chaque collègue doit ouvrir l'app et cliquer sur <strong>"Activer les notifications"</strong> pour recevoir les pushs. Son token FCM est alors enregistré dans Firestore sous <code>subscriptions/{userId}</code>.
+				Lors d'un remplacement, une Cloud Function Firebase envoie automatiquement le push à tous les tokens.
+			</div>
+		</div>
+		<button class="btn btn-firebase" (click)="requestFCMPermission()">🔔 Activer les notifications push</button>
+		<div style="margin-top:16px;" id="notif-list"></div>
+		<div class="sec-label">Préférences</div>
+		<div class="rules-card">
+			<div class="rule-row"><div><div class="rule-label">Rappel la veille à 18h</div><div class="rule-desc">Notification push la veille du tour</div></div><button class="toggle on" id="toggle-notif-eve" (click)="toggleNotif('eve')"></button></div>
+			<div class="rule-row"><div><div class="rule-label">Rappel le matin à 7h30</div><div class="rule-desc">Le jour J avant d'aller au bureau</div></div><button class="toggle" [class.on]="notifPrefs().morning" id="toggle-notif-morning" (click)="toggleNotif('morning')"></button></div>
+			<div class="rule-row"><div><div class="rule-label">Notifier les remplacements</div><div class="rule-desc">Quand un échange a lieu</div></div><button class="toggle" [class.on]="notifPrefs().swap" id="toggle-notif-swap" (click)="toggleNotif('swap')"></button></div>
+		</div>
+	</div>
+</div>
