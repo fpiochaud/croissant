@@ -1,4 +1,4 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { CroissantService } from '../../croissant.service';
 
@@ -9,8 +9,14 @@ import { CroissantService } from '../../croissant.service';
   styleUrl: './sync-bar.component.css',
 })
 export class SyncBarComponent {
-  syncStatus = computed(() => 'syncing');
-  syncLabel = computed(() => 'Connexion à Firebase…');
+  croissant = inject(CroissantService);
+  syncStatus = this.croissant.syncStatus;
+  syncLabel = computed(() => {
+    switch (this.croissant.syncStatus()) {
+      case 'online':  return 'Synchronisé avec Firebase';
+      case 'offline': return 'Hors ligne — reconnexion…';
+      default:        return 'Connexion à Firebase…';
+    }
+  });
 
-  constructor(public croissant: CroissantService) {}
 }

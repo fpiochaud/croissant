@@ -8,8 +8,10 @@
 					<div class="person-name">{{person.name}}</div>
 					<div class="person-meta">{{person.status}}</div>
 				</div>
-				<button class="btn btn-outline" (click)="$event.stopPropagation(); editPerson(person)">✏️</button>
-				<button class="btn btn-outline btn-danger" (click)="$event.stopPropagation(); deletePerson(person)">🗑️</button>
+				<div class="card-actions">
+					<button class="card-btn card-btn-edit" (click)="$event.stopPropagation(); editPerson(person)">✏️</button>
+					<button class="card-btn card-btn-delete" (click)="$event.stopPropagation(); deletePerson(person)">🗑️</button>
+				</div>
 			</div>
 		</div>
 		<button class="add-person-btn" (click)="openAddModal()">➕ Ajouter une personne</button>

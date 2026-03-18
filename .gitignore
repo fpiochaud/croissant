@@ -46,3 +46,4 @@ Thumbs.db
 # Firebase credentials (ne jamais commiter)
 src/environments/environment.local.ts
 config/firebase-config.json
+public/firebase-config.js

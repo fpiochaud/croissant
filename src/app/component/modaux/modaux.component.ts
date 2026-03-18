@@ -1,4 +1,4 @@
-import { Component, signal, effect } from '@angular/core';
+import { Component, signal, effect, inject } from '@angular/core';
 import { CroissantService, Person } from '../../croissant.service';
 
 @Component({
@@ -8,41 +8,25 @@ import { CroissantService, Person } from '../../croissant.service';
   styleUrl: './modaux.component.css',
 })
 export class ModauxComponent {
-  showAddModal = signal(false);
-  showEditModal = signal(false);
-  editPerson: Person | null = null;
+  croissant = inject(CroissantService);
+  showAddModal = this.croissant.showAddModal;
+  showEditModal = this.croissant.showEditModal;
+  editPerson = this.croissant.editPerson;
   color = signal('c1');
 
-  constructor(public croissant: CroissantService) {
+  constructor() {
     effect(() => {
-      if (this.editPerson && !this.croissant.state().persons.find(p => p.id === this.editPerson?.id)) {
-        this.showEditModal.set(false);
-        this.editPerson = null;
+      const ep = this.editPerson();
+      if (ep && !this.croissant.state().persons.find(p => p.id === ep.id)) {
+        this.croissant.closeModals();
+        this.croissant.editPerson.set(null);
       }
     });
   }
 
-  openAddModal() {
-    this.showAddModal.set(true);
-    setTimeout(() => {
-      (document.getElementById('add-name') as HTMLInputElement)?.focus();
-    }, 0);
-  }
-
-  openEditModal(person: Person) {
-    this.editPerson = { ...person };
-    this.color.set(person.color || 'c1');
-    this.showEditModal.set(true);
-    setTimeout(() => {
-      (document.getElementById('edit-name') as HTMLInputElement)?.focus();
-      (document.getElementById('edit-status') as HTMLSelectElement).value = person.status;
-    }, 0);
-  }
-
-  closeModalOutside(event: MouseEvent, modalId: string) {
+  closeModalOutside(event: MouseEvent) {
     if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
-      this.showAddModal.set(false);
-      this.showEditModal.set(false);
+      this.croissant.closeModals();
     }
   }
 
@@ -61,34 +45,34 @@ export class ModauxComponent {
     const color = this.color();
     if (!name || !initials) return;
     this.croissant.addPerson({ name, initials, color });
-    this.showAddModal.set(false);
+    this.croissant.showAddModal.set(false);
     (document.getElementById('add-name') as HTMLInputElement).value = '';
     (document.getElementById('add-initials') as HTMLInputElement).value = '';
     this.color.set('c1');
   }
 
   saveEdit() {
-    if (!this.editPerson) return;
+    const ep = this.editPerson();
+    if (!ep) return;
     const name = (document.getElementById('edit-name') as HTMLInputElement)?.value.trim();
     const status = (document.getElementById('edit-status') as HTMLSelectElement)?.value as Person['status'];
     const color = this.color();
     if (!name) return;
-    this.croissant.updatePerson({ ...this.editPerson, name, status, color });
-    this.showEditModal.set(false);
-    this.editPerson = null;
+    this.croissant.updatePerson({ ...ep, name, status, color });
+    this.croissant.closeModals();
+    this.croissant.editPerson.set(null);
   }
 
   deletePerson() {
-    if (this.editPerson) {
-      this.croissant.deletePerson(this.editPerson);
-      this.showEditModal.set(false);
-      this.editPerson = null;
+    const ep = this.editPerson();
+    if (ep) {
+      this.croissant.deletePerson(ep);
+      this.croissant.closeModals();
+      this.croissant.editPerson.set(null);
     }
   }
 
   confirmManualSwap() {
-    // TODO: implémenter la confirmation du remplacement manuel
-    this.showAddModal.set(false);
-    this.showEditModal.set(false);
+    this.croissant.closeModals();
   }
 }

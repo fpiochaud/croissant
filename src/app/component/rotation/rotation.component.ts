@@ -1,7 +1,6 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { NgFor } from '@angular/common';
 import { CroissantService, Person } from '../../croissant.service';
-import { ModauxComponent } from '../modaux/modaux.component';
 
 @Component({
   selector: 'croissant-rotation',
@@ -10,18 +9,16 @@ import { ModauxComponent } from '../modaux/modaux.component';
   styleUrl: './rotation.component.css',
 })
 export class RotationComponent {
-  selectedPerson: Person | null = null;
   persons = computed(() => this.croissant.state().persons);
-  modaux = inject(ModauxComponent, { optional: true });
 
   constructor(public croissant: CroissantService) {}
 
   openAddModal() {
-    if (this.modaux) this.modaux.openAddModal();
+    this.croissant.openAddModal();
   }
 
   editPerson(person: Person) {
-    if (this.modaux) this.modaux.openEditModal(person);
+    this.croissant.openEditModal(person);
   }
 
   deletePerson(person: Person) {

@@ -1,0 +1,17 @@
+{
+  "name": "Croissants du lundi",
+  "short_name": "Croissants",
+  "description": "Gestionnaire de rotation pour les croissants du lundi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFBF4",
+  "theme_color": "#92680A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

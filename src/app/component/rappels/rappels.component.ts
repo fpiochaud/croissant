@@ -1,4 +1,4 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CroissantService } from '../../croissant.service';
 
 @Component({
@@ -8,15 +8,12 @@ import { CroissantService } from '../../croissant.service';
   styleUrl: './rappels.component.css',
 })
 export class RappelsComponent {
+  croissant = inject(CroissantService);
   notifPrefs = computed(() => this.croissant.state().notifPrefs);
-  notifications = computed(() => this.croissant.state().notifications);
-  fcmEnabled = false;
+  fcmStatus = this.croissant.fcmStatus;
 
-  constructor(public croissant: CroissantService) {}
-
-  requestFCMPermission() {
-    this.fcmEnabled = true;
-    alert('Notifications push activées (simulation)');
+  async requestFCMPermission() {
+    await this.croissant.initFCM();
   }
 
   toggleNotif(pref: 'eve' | 'morning' | 'swap') {
