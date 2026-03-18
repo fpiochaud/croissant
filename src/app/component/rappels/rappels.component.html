@@ -1,0 +1,65 @@
+<div class="tab" [class.active]="croissant.activeTab() === 'rappels'" id="tab-rappels">
+	<div class="section-pad">
+		<div class="sec-label">Notifications push</div>
+
+		@if (fcmStatus() === 'idle') {
+			<div class="info-box" style="margin-bottom:12px;">
+				<div class="info-box-title">🔔 Activer les rappels</div>
+				<div class="info-box-text">Reçois une notification push quand c'est ton tour d'apporter les croissants — même si l'app est fermée.</div>
+			</div>
+			<button class="btn btn-firebase" (click)="requestFCMPermission()">🔔 Activer les notifications push</button>
+		}
+
+		@if (fcmStatus() === 'pending') {
+			<button class="btn btn-firebase" disabled style="opacity:0.6;">⏳ Activation en cours…</button>
+		}
+
+		@if (fcmStatus() === 'granted') {
+			<div class="status-pill sp-ok" style="display:inline-flex;gap:6px;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:4px;">
+				✅ Notifications activées sur cet appareil
+			</div>
+		}
+
+		@if (fcmStatus() === 'denied') {
+			<div class="status-pill sp-absent" style="display:inline-flex;gap:6px;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:8px;">
+				❌ Notifications refusées
+			</div>
+			<div class="info-box-text" style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">
+				Pour les réactiver, modifie les permissions dans les réglages de ton navigateur.
+			</div>
+		}
+
+		<div class="sec-label" style="margin-top:20px;">Préférences</div>
+		<div class="rules-card">
+			<div class="rule-row">
+				<div>
+					<div class="rule-label">Rappel la veille à 18h</div>
+					<div class="rule-desc">Notification push le dimanche soir</div>
+				</div>
+				<button class="toggle" [class.on]="notifPrefs().eve" (click)="toggleNotif('eve')"></button>
+			</div>
+			<div class="rule-row">
+				<div>
+					<div class="rule-label">Rappel le matin à 7h30</div>
+					<div class="rule-desc">Le lundi matin avant d'aller au bureau</div>
+				</div>
+				<button class="toggle" [class.on]="notifPrefs().morning" (click)="toggleNotif('morning')"></button>
+			</div>
+			<div class="rule-row">
+				<div>
+					<div class="rule-label">Notifier les remplacements</div>
+					<div class="rule-desc">Quand un échange a lieu dans l'équipe</div>
+				</div>
+				<button class="toggle" [class.on]="notifPrefs().swap" (click)="toggleNotif('swap')"></button>
+			</div>
+		</div>
+
+		<div class="info-box" style="margin-top:16px;">
+			<div class="info-box-title">ℹ️ Comment ça marche</div>
+			<div class="info-box-text">
+				Chaque membre doit activer les notifications sur <strong>son propre appareil</strong>.
+				Les rappels sont envoyés par Firebase à tous les appareils enregistrés.
+			</div>
+		</div>
+	</div>
+</div>

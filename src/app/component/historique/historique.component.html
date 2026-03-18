@@ -1,0 +1,13 @@
+<div class="tab" [class.active]="croissant.activeTab() === 'historique'" id="tab-historique">
+	<div class="section-pad">
+		<div class="sec-label">Séances passées</div>
+		<div id="history-list">
+			<div *ngIf="history().length === 0" class="history-empty">Aucun événement pour l'instant.</div>
+			<div *ngFor="let event of history()" class="history-row">
+				<div class="history-date">{{ event.date }}</div>
+				<div class="history-type">{{ event.type }}</div>
+				<div class="history-details">{{ event.details?.text || '' }}</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,19 @@
+<div class="tab" [class.active]="croissant.activeTab() === 'rotation'" id="tab-rotation">
+	<div class="section-pad">
+		<div class="sec-label">Ordre de passage</div>
+		<div id="rotation-list">
+			<div *ngFor="let person of persons()" class="person-card" (click)="editPerson(person)">
+				<div class="rank-badge">{{person.initials}}</div>
+				<div class="person-info">
+					<div class="person-name">{{person.name}}</div>
+					<div class="person-meta">{{person.status}}</div>
+				</div>
+				<div class="card-actions">
+					<button class="card-btn card-btn-edit" (click)="$event.stopPropagation(); editPerson(person)">✏️</button>
+					<button class="card-btn card-btn-delete" (click)="$event.stopPropagation(); deletePerson(person)">🗑️</button>
+				</div>
+			</div>
+		</div>
+		<button class="add-person-btn" (click)="openAddModal()">➕ Ajouter une personne</button>
+	</div>
+</div>

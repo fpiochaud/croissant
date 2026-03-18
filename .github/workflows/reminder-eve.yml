@@ -1,0 +1,28 @@
+name: Rappel veille (dimanche 18h)
+
+on:
+  schedule:
+    # Dimanche 17:00 UTC = 18:00 heure de Paris (hiver)
+    - cron: '0 17 * * 0'
+  workflow_dispatch: # Permet de lancer manuellement depuis GitHub pour tester
+
+jobs:
+  send-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: .github/scripts
+
+      - name: Envoyer le rappel veille
+        run: node .github/scripts/send-reminders.js eve
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

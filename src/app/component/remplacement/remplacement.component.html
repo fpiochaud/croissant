@@ -1,0 +1,29 @@
+<div class="tab" [class.active]="croissant.activeTab() === 'remplacement'" id="tab-remplacement">
+	<div class="section-pad">
+		<div class="sec-label">Déclarer une absence</div>
+		<div class="swap-card">
+			<div class="swap-header">👤 Qui est absent ?</div>
+			<div class="field" style="margin:0;">
+				<select id="absent-select" (change)="updateSwapPreview()">
+					<option value="">— Choisir une personne —</option>
+					<option *ngFor="let person of persons()" [value]="person.id">{{person.name}}</option>
+				</select>
+			</div>
+		</div>
+		<div id="swap-preview" style="display:none;">
+			<div class="swap-card">
+				<div class="swap-header">🔄 Remplacement proposé</div>
+				<div class="swap-flow" id="swap-flow"></div>
+				<div class="swap-note" id="swap-note"></div>
+				<button class="btn btn-primary" (click)="confirmSwap()">✅ Confirmer — notifier tout le monde</button>
+				<button class="btn btn-outline" (click)="manualSwap()">👥 Choisir manuellement</button>
+			</div>
+		</div>
+		<div class="sec-label">Règles de remplacement</div>
+			<div class="rules-card">
+				<div class="rule-row"><div><div class="rule-label">Remplacement automatique</div><div class="rule-desc">Par le suivant dans la liste</div></div><button class="toggle" [class.on]="rules().auto" id="toggle-auto" (click)="toggleRule('auto')"></button></div>
+				<div class="rule-row"><div><div class="rule-label">Rattrapage automatique</div><div class="rule-desc">L'absent rattrape à son retour</div></div><button class="toggle" [class.on]="rules().catch" id="toggle-catch" (click)="toggleRule('catch')"></button></div>
+				<div class="rule-row"><div><div class="rule-label">Échanges manuels libres</div><div class="rule-desc">N'importe qui peut permuter</div></div><button class="toggle" [class.on]="rules().manual" id="toggle-manual" (click)="toggleRule('manual')"></button></div>
+			</div>
+	</div>
+</div>

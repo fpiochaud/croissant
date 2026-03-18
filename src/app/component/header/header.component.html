@@ -1,0 +1,18 @@
+<div class="header">
+	<div class="header-top">
+		<div>
+			<div class="header-title">🥐 Croissants</div>
+			<div class="header-subtitle">{{ teamName() }}</div>
+		</div>
+		<button class="header-settings" (click)="$event.preventDefault()">⚙️</button>
+	</div>
+	<div class="next-card">
+		<div class="next-avatar">?</div>
+		<div>
+			<div class="next-label">Prochain tour</div>
+			<div class="next-name">{{ nextName() }}</div>
+			<div class="next-date">{{ nextDate() }}</div>
+		</div>
+		<div class="next-badge" *ngIf="isNextUser()">C'est vous !</div>
+	</div>
+</div>

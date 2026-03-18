@@ -1,0 +1,9 @@
+{
+  "name": "croissant-reminders",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
