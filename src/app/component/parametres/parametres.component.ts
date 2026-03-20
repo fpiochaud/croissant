@@ -32,4 +32,8 @@ export class ParametresComponent {
       location.reload();
     }
   }
+
+  logout() {
+    this.croissant.logout();
+  }
 }

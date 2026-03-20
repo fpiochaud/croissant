@@ -165,3 +165,29 @@ select:focus { border-color: var(--gold); }
 .tab.active .person-card:nth-child(1){animation-delay:.02s} .tab.active .person-card:nth-child(2){animation-delay:.05s}
 .tab.active .person-card:nth-child(3){animation-delay:.08s} .tab.active .person-card:nth-child(4){animation-delay:.11s}
 .tab.active .person-card:nth-child(5){animation-delay:.14s}
+
+/* AUTH SCREEN */
+.auth-screen { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--cream); }
+.auth-card { width: 100%; max-width: 360px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 24px; box-shadow: 0 4px 24px rgba(146,104,10,0.08); }
+.auth-logo { font-size: 48px; text-align: center; margin-bottom: 8px; }
+.auth-title { font-family: 'DM Serif Display', serif; font-size: 22px; text-align: center; color: var(--gold-dark); margin-bottom: 4px; }
+.auth-subtitle { font-size: 13px; text-align: center; color: var(--text-muted); margin-bottom: 20px; }
+.auth-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); background: #fff; margin-bottom: 10px; outline: none; display: block; }
+.auth-input:focus { border-color: var(--gold); }
+.auth-error { background: var(--red-bg); color: var(--red); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
+.auth-blocked { background: var(--red-bg); color: var(--red); border-radius: var(--radius-sm); padding: 20px 16px; font-size: 13px; text-align: center; line-height: 1.6; }
+.auth-blocked-icon { font-size: 36px; margin-bottom: 10px; }
+.auth-loading { min-height: 100dvh; display: flex; align-items: center; justify-content: center; font-size: 56px; animation: pulse 1.2s ease-in-out infinite; }
+
+/* INSTALL CARD */
+.install-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
+.install-platform { padding: 16px; }
+.install-platform-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.install-steps { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.install-steps li { font-size: 13px; color: var(--text); line-height: 1.5; }
+.install-steps strong { color: var(--gold-dark); }
+.install-icon-inline { display: inline-block; font-size: 12px; background: var(--gold-light); color: var(--gold-dark); border-radius: 4px; padding: 1px 5px; font-weight: 600; }
+.install-divider { height: 1px; background: var(--border); margin: 0 16px; }
+.install-note { margin-top: 10px; font-size: 11px; color: var(--text-muted); background: var(--orange-bg); color: var(--orange); border-radius: var(--radius-sm); padding: 8px 10px; line-height: 1.5; }
+.card-btn-top { border-color: var(--blue); }
+.card-btn-top:hover { background: var(--blue-bg); }
