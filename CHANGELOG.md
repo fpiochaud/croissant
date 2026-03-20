@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.2 — 2026-03-20
+
+- chore: correction déploiement
+
 ## v1.0.1 — 2026-03-20
 
 - ci: deploiement firebase
