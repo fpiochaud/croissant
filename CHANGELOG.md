@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.4 — 2026-03-20
+
+- debug: afficher le contenu du build
+
 ## v1.0.3 — 2026-03-20
 
 - fix: revert hosting public path to browser dir
