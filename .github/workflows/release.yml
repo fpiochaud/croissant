@@ -1,0 +1,66 @@
+name: Release & Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Évite la boucle infinie sur le commit de version
+    if: "!contains(github.event.head_commit.message, 'chore: release v')"
+
+    permissions:
+      contents: write  # pour pousser le tag et créer la release
+
+    steps:
+      - name: Checkout (avec historique complet pour les tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installer les dépendances
+        run: npm install
+
+      - name: Build Angular (production)
+        run: npm run build
+
+      - name: Déployer sur Firebase Hosting
+        run: npx firebase-tools deploy --only hosting:croissant-lundi --project croissant-593e5 --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Incrémenter la version et mettre à jour CHANGELOG
+        id: version
+        run: |
+          NEW_VERSION=$(node .github/scripts/bump-version.js)
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit, tag et push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json CHANGELOG.md
+          git commit -m "chore: release v${{ steps.version.outputs.version }}"
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin main --tags
+
+      - name: Créer la GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NOTES=$(node -e "
+            const fs = require('fs');
+            const log = fs.readFileSync('CHANGELOG.md', 'utf8');
+            const match = log.match(/## v[\s\S]*?(?=\n## v|\s*$)/);
+            process.stdout.write(match ? match[0].trim() : 'Nouvelle version');
+          ")
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "$NOTES"
