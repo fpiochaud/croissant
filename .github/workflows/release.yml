@@ -32,7 +32,7 @@ jobs:
         run: npm run build
 
       - name: Vérifier le contenu du build
-        run: ls -la dist/ && ls -la dist/croissant-angular/ || echo "Dossier introuvable"
+        run: ls -la dist/croissant-angular/browser/ || echo "Dossier browser introuvable"
 
       - name: Déployer sur Firebase Hosting
         run: npx firebase-tools deploy --only hosting:croissant-lundi --project croissant-593e5 --non-interactive
