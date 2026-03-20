@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.6 — 2026-03-20
+
+- ci: inject Firebase config from secrets at build time
+
 ## v1.0.5 — 2026-03-20
 
 - debug: lister contenu browser
