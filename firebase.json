@@ -4,7 +4,7 @@
   },
   "hosting": {
     "site": "croissant-lundi",
-    "public": "dist/croissant-angular",
+    "public": "dist/croissant-angular/browser",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [{ "source": "**", "destination": "/index.html" }]
   }
