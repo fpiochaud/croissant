@@ -1,43 +1,46 @@
-// firestore.rules
-// Déployer avec : firebase deploy --only firestore:rules
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Équipes ───────────────────────────────────────────────
-    // Lecture publique (tout le monde peut voir le planning)
-    // Écriture ouverte (pas d'auth pour simplifier l'usage)
-    // Pour renforcer : ajouter Firebase Auth et vérifier request.auth != null
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ── Équipes ────────────────────────────────────────────────
     match /teams/{teamId} {
-      allow read:  if true;
-      allow write: if true;
+      allow read, write: if isAuthenticated();
 
-      // Personnes de l'équipe
       match /persons/{personId} {
-        allow read:  if true;
-        allow write: if true;
+        allow read, write: if isAuthenticated();
       }
-
-      // Historique
       match /history/{entryId} {
-        allow read:  if true;
-        allow write: if true;
+        allow read, write: if isAuthenticated();
       }
-
-      // Notifications in-app
       match /notifications/{notifId} {
-        allow read:  if true;
-        allow write: if true;
+        allow read, write: if isAuthenticated();
+      }
+      match /tokens/{tokenId} {
+        allow read: if false;         // Uniquement GitHub Actions (Admin SDK)
+        allow write: if isAuthenticated();
       }
     }
 
-    // ── Subscriptions FCM ──────────────────────────────────────
-    // Chaque appareil enregistre son token FCM
-    // Lecture réservée aux Cloud Functions (Admin SDK, bypass rules)
-    match /subscriptions/{subId} {
-      allow read:  if false;  // uniquement via Admin SDK (Cloud Function)
-      allow write: if true;   // n'importe quel appareil peut s'enregistrer
+    // ── Profils utilisateurs ───────────────────────────────────
+    match /users/{uid} {
+      allow read, write: if isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // ── Suppressions en attente ────────────────────────────────
+    // Lecture : l'utilisateur peut vérifier s'il est bloqué (par son email encodé)
+    // Écriture : admin uniquement
+    match /pendingDeletions/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
   }
 }

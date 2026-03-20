@@ -1,0 +1,45 @@
+<div class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">🥐</div>
+    <div class="auth-title">Croissants du lundi</div>
+
+    @if (croissant.authStatus() === 'blocked') {
+      <div class="auth-blocked">
+        <div class="auth-blocked-icon">🚫</div>
+        <div>{{ croissant.authError() }}</div>
+      </div>
+    } @else {
+      <div class="auth-subtitle">Connectez-vous pour accéder à l'app</div>
+
+      @if (error()) {
+        <div class="auth-error">{{ error() }}</div>
+      }
+
+      <input
+        class="auth-input"
+        type="email"
+        placeholder="Email"
+        autocomplete="email"
+        #emailInput
+        (keydown)="onKeydown($event, emailInput.value, pwdInput.value)"
+      />
+      <input
+        class="auth-input"
+        type="password"
+        placeholder="Mot de passe"
+        autocomplete="current-password"
+        #pwdInput
+        (keydown)="onKeydown($event, emailInput.value, pwdInput.value)"
+      />
+
+      <button
+        class="btn btn-primary"
+        style="margin-top:4px;"
+        (click)="login(emailInput.value, pwdInput.value)"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Connexion…' : 'Se connecter' }}
+      </button>
+    }
+  </div>
+</div>

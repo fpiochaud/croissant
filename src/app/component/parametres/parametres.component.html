@@ -1,13 +1,6 @@
 <div class="tab" [class.active]="croissant.activeTab() === 'params'" id="tab-params">
 	<div class="section-pad">
-		<div class="firebase-box">
-			<div class="firebase-box-title">⚙️ Configuration Firebase requise</div>
-			<div class="firebase-box-text">
-				Remplacez les valeurs <code>YOUR_*</code> dans le bloc <code>firebaseConfig</code> ci-dessous (et dans <code>firebase-sw.js</code>) par vos clés issues de la Console Firebase.<br><br>
-				Chemin : <strong>Console Firebase → Paramètres projet → Vos applications → SDK Firebase</strong>
-			</div>
-		</div>
-		<div class="sec-label">Équipe</div>
+<div class="sec-label">Équipe</div>
 		<div class="settings-section">
 			<div class="settings-row"><span class="settings-icon">🏢</span><span class="settings-label">Nom de l'équipe</span><span class="settings-value" id="param-team-name">{{ teamName() }}</span></div>
 			<div class="settings-row" (click)="openTab('rotation')"><span class="settings-icon">👥</span><span class="settings-label">Gérer les membres</span><span class="settings-value" id="param-member-count">{{ memberCount() }} personnes</span></div>
@@ -18,6 +11,34 @@
 			<div class="settings-row"><span class="settings-icon">🔔</span><span class="settings-label">Token FCM enregistré</span><span class="settings-value" id="param-fcm-status">Non</span></div>
 			<div class="settings-row" (click)="exportData()"><span class="settings-icon">📤</span><span class="settings-label">Exporter les données JSON</span></div>
 			<div class="settings-row" (click)="resetData()"><span class="settings-icon">🗑️</span><span class="settings-label" style="color:var(--red)">Réinitialiser</span></div>
+		</div>
+		<div class="sec-label">Installer l'application</div>
+		<div class="install-card">
+			<div class="install-platform">
+				<div class="install-platform-title">🤖 Android</div>
+				<ol class="install-steps">
+					<li>Ouvre l'app dans <strong>Chrome</strong></li>
+					<li>Menu <strong>⋮</strong> en haut à droite</li>
+					<li>Appuie sur <strong>"Ajouter à l'écran d'accueil"</strong></li>
+					<li>Confirme → l'app s'installe</li>
+				</ol>
+			</div>
+			<div class="install-divider"></div>
+			<div class="install-platform">
+				<div class="install-platform-title">🍎 iPhone / iPad</div>
+				<ol class="install-steps">
+					<li>Ouvre l'app dans <strong>Safari</strong> (pas Chrome)</li>
+					<li>Appuie sur le bouton <strong>Partager</strong> <span class="install-icon-inline">□↑</span></li>
+					<li>Fais défiler et appuie sur <strong>"Sur l'écran d'accueil"</strong></li>
+					<li>Appuie sur <strong>Ajouter</strong></li>
+				</ol>
+				<div class="install-note">⚠️ Les notifications push nécessitent iOS 16.4+ et l'app installée depuis Safari.</div>
+			</div>
+		</div>
+		<div class="sec-label">Compte</div>
+		<div class="settings-section">
+			<div class="settings-row"><span class="settings-icon">👤</span><span class="settings-label">{{ croissant.currentUser()?.email }}</span><span class="settings-value">{{ croissant.isAdmin() ? 'Admin' : 'Membre' }}</span></div>
+			<div class="settings-row" (click)="logout()" style="cursor:pointer;"><span class="settings-icon">🚪</span><span class="settings-label" style="color:var(--red)">Se déconnecter</span></div>
 		</div>
 		<div style="text-align:center;padding:24px 0 8px;font-size:11px;color:var(--text-hint);">🥐 Croissants du lundi v2.0 — Firebase edition</div>
 	</div>

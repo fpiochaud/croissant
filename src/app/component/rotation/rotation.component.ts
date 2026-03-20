@@ -17,11 +17,29 @@ export class RotationComponent {
     this.croissant.openAddModal();
   }
 
+  canEdit(person: Person): boolean {
+    return this.croissant.isAdmin() || person.email === this.croissant.currentUser()?.email;
+  }
+
   editPerson(person: Person) {
-    this.croissant.openEditModal(person);
+    if (this.canEdit(person)) {
+      this.croissant.openEditModal(person);
+    }
   }
 
   deletePerson(person: Person) {
     this.croissant.deletePerson(person);
+  }
+
+  moveToTop(person: Person) {
+    this.croissant.movePersonToTop(person.id);
+  }
+
+  isCurrentUser(person: Person): boolean {
+    return person.email === this.croissant.currentUser()?.email;
+  }
+
+  isFirst(person: Person): boolean {
+    return this.persons()[0]?.id === person.id;
   }
 }

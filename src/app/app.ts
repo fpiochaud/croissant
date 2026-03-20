@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { CroissantService } from './croissant.service';
+import { LoginComponent } from './component/login/login.component';
 import { HeaderComponent } from './component/header/header.component';
 import { SyncBarComponent } from './component/sync-bar/sync-bar.component';
 import { NavigationComponent } from './component/navigation/navigation.component';
@@ -13,7 +14,7 @@ import { ModauxComponent } from './component/modaux/modaux.component';
 @Component({
   selector: 'app-root',
   imports: [
-    RouterOutlet,
+    LoginComponent,
     HeaderComponent,
     SyncBarComponent,
     NavigationComponent,
@@ -28,5 +29,5 @@ import { ModauxComponent } from './component/modaux/modaux.component';
   styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('croissant-angular');
+  croissant = inject(CroissantService);
 }
