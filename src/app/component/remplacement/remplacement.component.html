@@ -16,7 +16,7 @@
 				<div class="swap-flow" id="swap-flow"></div>
 				<div class="swap-note" id="swap-note"></div>
 				@if (!manualMode()) {
-					<button class="btn btn-primary" (click)="confirmSwap()">✅ Confirmer — notifier tout le monde</button>
+					<button class="btn btn-primary" (click)="confirmSwap()">✅ Confirmer</button>
 					<button class="btn btn-outline" (click)="manualSwap()">👥 Choisir manuellement</button>
 				} @else {
 					<div class="field" style="margin:8px 0;">
@@ -29,7 +29,7 @@
 							}
 						</select>
 					</div>
-					<button class="btn btn-primary" [disabled]="!manualReplacementId()" (click)="confirmManualSwap()">✅ Confirmer — notifier tout le monde</button>
+					<button class="btn btn-primary" [disabled]="!manualReplacementId()" (click)="confirmManualSwap()">✅ Confirmer</button>
 					<button class="btn btn-outline" (click)="manualMode.set(false)">↩ Annuler</button>
 				}
 			</div>

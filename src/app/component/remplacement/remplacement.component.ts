@@ -53,10 +53,6 @@ export class RemplacementComponent {
       if (preview.replacement) {
         this.croissant.promoteReplacement(preview.absent.id, preview.replacement.id);
       }
-      this.croissant.addPendingSwapNotification(
-        preview.absent.name,
-        preview.replacement?.name ?? ''
-      );
       this.croissant.addHistory({
         date: new Date().toLocaleString(),
         type: 'Absence',
@@ -81,7 +77,6 @@ export class RemplacementComponent {
     if (!absent || !replacement) return;
     this.croissant.setPersonAbsent(absent.id, replacement.name);
     this.croissant.promoteReplacement(absent.id, replacement.id);
-    this.croissant.addPendingSwapNotification(absent.name, replacement.name);
     this.croissant.addHistory({
       date: new Date().toLocaleString(),
       type: 'Absence',

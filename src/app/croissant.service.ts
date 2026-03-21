@@ -279,19 +279,6 @@ export class CroissantService {
     updateDoc(doc(this.db, 'teams', this.teamId), { rules });
   }
 
-  async addPendingSwapNotification(absentName: string, replacementName: string, customBody?: string) {
-    if (!this.state().notifPrefs.swap) return;
-    const body = customBody ?? (replacementName
-      ? `${absentName} est absent(e) — c'est ${replacementName} qui apporte les croissants !`
-      : `${absentName} est absent(e) — pas de remplaçant disponible.`);
-    await addDoc(collection(this.db, 'pendingSwapNotifications'), {
-      teamId: this.teamId,
-      title: '🔄 Remplacement croissants',
-      body,
-      createdAt: serverTimestamp(),
-    });
-  }
-
   async addHistory(event: { date: string; type: string; details: any }) {
     this.state.update(s => ({ ...s, history: [event, ...s.history] }));
     await addDoc(collection(this.db, 'teams', this.teamId, 'history'), {
@@ -357,18 +344,8 @@ export class CroissantService {
     const idx = persons.findIndex(p => p.id === personId);
     if (idx <= 0) return; // déjà en premier
 
-    const displaced = persons[0]; // celui qui était en premier
     const [person] = persons.splice(idx, 1);
     persons.unshift(person);
-
-    // Notification de remplacement
-    const nextMonday = getNextMonday();
-    const dateLabel = nextMonday.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-    this.addPendingSwapNotification(
-      person.name,
-      displaced.name,
-      `${person.name} apportera les croissants le ${dateLabel} à la place de ${displaced.name}`
-    );
 
     // Mise à jour locale immédiate
     this.state.update(s => ({
