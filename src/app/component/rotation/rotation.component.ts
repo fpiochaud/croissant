@@ -1,6 +1,6 @@
 import { Component, computed } from '@angular/core';
 import { NgFor } from '@angular/common';
-import { CroissantService, Person } from '../../croissant.service';
+import { CroissantService, Person, getNextMonday } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-rotation',
@@ -10,6 +10,16 @@ import { CroissantService, Person } from '../../croissant.service';
 })
 export class RotationComponent {
   persons = computed(() => this.croissant.state().persons);
+
+  personsWithDates = computed(() => {
+    const nextMonday = getNextMonday();
+    return this.persons().map((person, index) => {
+      const date = new Date(nextMonday);
+      date.setDate(date.getDate() + index * 7);
+      const label = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      return { ...person, dateLabel: label };
+    });
+  });
 
   constructor(public croissant: CroissantService) {}
 

@@ -36,6 +36,29 @@ function encodeEmail(email: string): string {
   return email.toLowerCase().replace('@', '_at_').replace(/\./g, '_dot_');
 }
 
+// Retourne la date du lundi le plus récent qui est PASSÉ (si aujourd'hui est lundi, c'est le lundi d'avant)
+function getMostRecentPastMonday(): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const day = today.getDay(); // 0=dim, 1=lun, ..., 6=sam
+  const daysBack = day === 0 ? 6 : day === 1 ? 7 : day - 1;
+  const lastMonday = new Date(today);
+  lastMonday.setDate(today.getDate() - daysBack);
+  return lastMonday.toISOString().split('T')[0];
+}
+
+// Retourne la date du prochain lundi (aujourd'hui si on est lundi)
+export function getNextMonday(): Date {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const day = today.getDay();
+  if (day === 1) return today;
+  const daysUntil = day === 0 ? 1 : 8 - day;
+  const next = new Date(today);
+  next.setDate(today.getDate() + daysUntil);
+  return next;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CroissantService {
   private app: FirebaseApp;
@@ -44,6 +67,7 @@ export class CroissantService {
   private messaging: Messaging | null = null;
   private teamId = environment.teamId;
   private listenersInitialized = false;
+  private rotationChecked = false;
 
   state = signal<AppState>({
     persons: [],
@@ -189,6 +213,10 @@ export class CroissantService {
       (snap) => {
         const persons = snap.docs.map(d => ({ id: d.id, ...d.data() } as Person));
         this.state.update(s => ({ ...s, persons }));
+        if (!this.rotationChecked && persons.length > 0) {
+          this.rotationChecked = true;
+          this.checkAndRotate(persons);
+        }
       }
     );
 
@@ -259,6 +287,24 @@ export class CroissantService {
       persons: s.persons.map(p => p.id === personId ? { ...p, status: 'ok' } : p),
     }));
     updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), { status: 'ok' });
+  }
+
+  private async checkAndRotate(persons: Person[]) {
+    const teamSnap = await getDoc(doc(this.db, 'teams', this.teamId));
+    const lastRotationDate: string | null = teamSnap.data()?.['lastRotationDate'] ?? null;
+    const mostRecentPastMonday = getMostRecentPastMonday();
+
+    if (lastRotationDate && lastRotationDate >= mostRecentPastMonday) return;
+
+    // Déplace le premier en bas de liste
+    const updated = [...persons];
+    const [first] = updated.splice(0, 1);
+    updated.push(first);
+
+    const batch = writeBatch(this.db);
+    updated.forEach((p, i) => batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), { rank: i }));
+    batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: mostRecentPastMonday });
+    await batch.commit();
   }
 
   movePersonToTop(personId: string) {

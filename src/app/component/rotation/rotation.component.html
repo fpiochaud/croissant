@@ -2,11 +2,11 @@
 	<div class="section-pad">
 		<div class="sec-label">Ordre de passage</div>
 		<div id="rotation-list">
-			<div *ngFor="let person of persons()" class="person-card" (click)="editPerson(person)">
+			<div *ngFor="let person of personsWithDates()" class="person-card" (click)="editPerson(person)">
 				<div class="rank-badge">{{person.initials}}</div>
 				<div class="person-info">
 					<div class="person-name">{{person.name}}</div>
-					<div class="person-meta">{{person.status}}</div>
+					<div class="person-meta">🗓 {{person.dateLabel}}</div>
 				</div>
 				<div class="card-actions">
 					@if (isCurrentUser(person) && !isFirst(person)) {
