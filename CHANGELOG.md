@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.10 — 2026-03-21
+
+- fix: correction du favicon pour apple
+- feat: pouvoir désactiver les notifications
+
 ## v1.0.9 — 2026-03-21
 
 - feat: changement du favicon + gestion de la rotatation des membres
