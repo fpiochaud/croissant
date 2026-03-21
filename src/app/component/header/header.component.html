@@ -4,7 +4,18 @@
 			<div class="header-title">🥐 Croissants</div>
 			<div class="header-subtitle">{{ teamName() }}</div>
 		</div>
-		<button class="header-settings" (click)="$event.preventDefault()">⚙️</button>
+		<div class="account-menu">
+			<button class="header-settings" (click)="reload()" title="Rafraîchir">↺</button>
+			<button class="header-settings" (click)="toggleDropdown($event)">👤</button>
+			@if (showDropdown()) {
+				<div class="account-dropdown" (click)="$event.stopPropagation()">
+					<div class="account-dropdown-email">{{ croissant.currentUser()?.email }}</div>
+					<div class="account-dropdown-role">{{ croissant.isAdmin() ? 'Administrateur' : 'Membre' }}</div>
+					<div class="account-dropdown-divider"></div>
+					<button class="account-dropdown-logout" (click)="logout()">🚪 Se déconnecter</button>
+				</div>
+			}
+		</div>
 	</div>
 	<div class="next-card">
 		<div class="next-avatar">?</div>

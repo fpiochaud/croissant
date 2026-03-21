@@ -1,4 +1,4 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, signal, HostListener } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { CroissantService } from '../../croissant.service';
 
@@ -14,11 +14,28 @@ export class HeaderComponent {
     const s = this.croissant.state();
     return s.persons[s.currentIndex]?.name ?? '—';
   });
-  nextDate = computed(() => {
-    // Logique de date à adapter selon l'app originale
-    return '—';
-  });
-  isNextUser = computed(() => false); // À adapter si besoin
+  nextDate = computed(() => '—');
+  isNextUser = computed(() => false);
+  showDropdown = signal(false);
 
   constructor(public croissant: CroissantService) {}
+
+  toggleDropdown(event: Event) {
+    event.stopPropagation();
+    this.showDropdown.update(v => !v);
+  }
+
+  @HostListener('document:click')
+  closeDropdown() {
+    this.showDropdown.set(false);
+  }
+
+  reload() {
+    window.location.reload();
+  }
+
+  logout() {
+    this.showDropdown.set(false);
+    this.croissant.logout();
+  }
 }

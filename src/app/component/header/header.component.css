@@ -1,0 +1,49 @@
+.account-menu {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: 12px;
+  min-width: 200px;
+  z-index: 100;
+}
+
+.account-dropdown-email {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.account-dropdown-role {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.account-dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 0;
+}
+
+.account-dropdown-logout {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--red);
+  padding: 4px 0;
+  font-weight: 500;
+}

@@ -1,11 +1,6 @@
 <div class="tab" [class.active]="croissant.activeTab() === 'params'" id="tab-params">
 	<div class="section-pad">
-<div class="sec-label">Équipe</div>
-		<div class="settings-section">
-			<div class="settings-row"><span class="settings-icon">🏢</span><span class="settings-label">Nom de l'équipe</span><span class="settings-value" id="param-team-name">{{ teamName() }}</span></div>
-			<div class="settings-row" (click)="openTab('rotation')"><span class="settings-icon">👥</span><span class="settings-label">Gérer les membres</span><span class="settings-value" id="param-member-count">{{ memberCount() }} personnes</span></div>
-		</div>
-		<div class="sec-label">Firebase</div>
+<div class="sec-label">Firebase</div>
 		<div class="settings-section">
 			<div class="settings-row"><span class="settings-icon">🔥</span><span class="settings-label">Statut Firestore</span><span class="settings-value">{{ firestoreStatus() }}</span></div>
 			<div class="settings-row"><span class="settings-icon">🔔</span><span class="settings-label">Token FCM enregistré</span><span class="settings-value">{{ fcmLabel() }}</span></div>
@@ -33,11 +28,6 @@
 				<div class="install-note">⚠️ Les notifications push nécessitent iOS 16.4+ et l'app installée depuis Safari.</div>
 			</div>
 		</div>
-		<div class="sec-label">Compte</div>
-		<div class="settings-section">
-			<div class="settings-row"><span class="settings-icon">👤</span><span class="settings-label">{{ croissant.currentUser()?.email }}</span><span class="settings-value">{{ croissant.isAdmin() ? 'Admin' : 'Membre' }}</span></div>
-			<div class="settings-row" (click)="logout()" style="cursor:pointer;"><span class="settings-icon">🚪</span><span class="settings-label" style="color:var(--red)">Se déconnecter</span></div>
-		</div>
-		<div style="text-align:center;padding:24px 0 8px;font-size:11px;color:var(--text-hint);">🥐 Croissants du lundi v2.0 — Firebase edition</div>
+<div style="text-align:center;padding:24px 0 8px;font-size:11px;color:var(--text-hint);">🥐 Croissants du lundi v2.0 — Firebase edition</div>
 	</div>
 </div>
