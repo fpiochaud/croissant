@@ -308,6 +308,24 @@ export class CroissantService {
     updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), { status: 'absent', replacedBy: replacedBy ?? null });
   }
 
+  // Quand l'absent est en tête de liste, on fait passer le remplaçant devant lui
+  promoteReplacement(absentId: string, replacementId: string) {
+    const persons = [...this.state().persons];
+    if (persons[0]?.id !== absentId) return; // l'absent n'est pas premier, rien à faire
+
+    const replacementIdx = persons.findIndex(p => p.id === replacementId);
+    if (replacementIdx <= 0) return;
+
+    const [replacement] = persons.splice(replacementIdx, 1);
+    persons.unshift(replacement); // insère le remplaçant en position 0
+
+    this.state.update(s => ({ ...s, persons: persons.map((p, i) => ({ ...p, rank: i })) }));
+
+    const batch = writeBatch(this.db);
+    persons.forEach((p, i) => batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), { rank: i }));
+    batch.commit();
+  }
+
   setPersonOk(personId: string) {
     this.state.update(s => ({
       ...s,

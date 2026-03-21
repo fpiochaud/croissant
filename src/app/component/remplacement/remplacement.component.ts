@@ -50,6 +50,9 @@ export class RemplacementComponent {
     const preview = this.swapPreview();
     if (preview?.absent) {
       this.croissant.setPersonAbsent(preview.absent.id, preview.replacement?.name);
+      if (preview.replacement) {
+        this.croissant.promoteReplacement(preview.absent.id, preview.replacement.id);
+      }
       this.croissant.addPendingSwapNotification(
         preview.absent.name,
         preview.replacement?.name ?? ''
@@ -77,6 +80,7 @@ export class RemplacementComponent {
     const replacement = this.persons().find(p => p.id === this.manualReplacementId());
     if (!absent || !replacement) return;
     this.croissant.setPersonAbsent(absent.id, replacement.name);
+    this.croissant.promoteReplacement(absent.id, replacement.id);
     this.croissant.addPendingSwapNotification(absent.name, replacement.name);
     this.croissant.addHistory({
       date: new Date().toLocaleString(),
