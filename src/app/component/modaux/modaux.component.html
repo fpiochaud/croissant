@@ -10,13 +10,21 @@
 			<div class="field"><label>Couleur</label>
 				<div class="color-picker" id="color-picker">
 					<div class="color-dot c1 selected" data-class="c1" (click)="selectColor($event)"></div>
-					<div class="color-dot c2" data-class="c2" (click)="selectColor($event)"></div>
-					<div class="color-dot c3" data-class="c3" (click)="selectColor($event)"></div>
-					<div class="color-dot c4" data-class="c4" (click)="selectColor($event)"></div>
-					<div class="color-dot c5" data-class="c5" (click)="selectColor($event)"></div>
-					<div class="color-dot c6" data-class="c6" (click)="selectColor($event)"></div>
-					<div class="color-dot c7" data-class="c7" (click)="selectColor($event)"></div>
-					<div class="color-dot c8" data-class="c8" (click)="selectColor($event)"></div>
+					<div class="color-dot c2"  data-class="c2"  (click)="selectColor($event)"></div>
+					<div class="color-dot c3"  data-class="c3"  (click)="selectColor($event)"></div>
+					<div class="color-dot c4"  data-class="c4"  (click)="selectColor($event)"></div>
+					<div class="color-dot c5"  data-class="c5"  (click)="selectColor($event)"></div>
+					<div class="color-dot c6"  data-class="c6"  (click)="selectColor($event)"></div>
+					<div class="color-dot c7"  data-class="c7"  (click)="selectColor($event)"></div>
+					<div class="color-dot c8"  data-class="c8"  (click)="selectColor($event)"></div>
+					<div class="color-dot c9"  data-class="c9"  (click)="selectColor($event)"></div>
+					<div class="color-dot c10" data-class="c10" (click)="selectColor($event)"></div>
+					<div class="color-dot c11" data-class="c11" (click)="selectColor($event)"></div>
+					<div class="color-dot c12" data-class="c12" (click)="selectColor($event)"></div>
+					<div class="color-dot c13" data-class="c13" (click)="selectColor($event)"></div>
+					<div class="color-dot c14" data-class="c14" (click)="selectColor($event)"></div>
+					<div class="color-dot c15" data-class="c15" (click)="selectColor($event)"></div>
+					<div class="color-dot c16" data-class="c16" (click)="selectColor($event)"></div>
 				</div>
 			</div>
 			<button class="btn btn-primary" (click)="addPerson()">Ajouter ✓</button>
@@ -31,7 +39,8 @@
 		<div class="modal-title" id="edit-modal-title">Modifier</div>
 		<div class="modal-body">
 			<div class="field"><label>Prénom et nom</label><input type="text" id="edit-name" maxlength="40"></div>
-			<div class="field"><label>Email (optionnel)</label><input type="email" id="edit-email" placeholder="sophie@example.com"></div>
+			<div class="field"><label>Initiales (2 lettres)</label><input type="text" id="edit-initials" maxlength="2" style="text-transform:uppercase"></div>
+			<div class="field"><label>Email</label><input type="email" id="edit-email" placeholder="sophie@example.com" required [attr.disabled]="!croissant.isAdmin() ? '' : null"></div>
 			<div class="field"><label>Statut</label>
 				<select id="edit-status">
 					<option value="ok">Disponible</option>
@@ -41,14 +50,22 @@
 			</div>
 			<div class="field"><label>Couleur</label>
 				<div class="color-picker" id="edit-color-picker">
-					<div class="color-dot c1" data-class="c1" (click)="selectColor($event)"></div>
-					<div class="color-dot c2" data-class="c2" (click)="selectColor($event)"></div>
-					<div class="color-dot c3" data-class="c3" (click)="selectColor($event)"></div>
-					<div class="color-dot c4" data-class="c4" (click)="selectColor($event)"></div>
-					<div class="color-dot c5" data-class="c5" (click)="selectColor($event)"></div>
-					<div class="color-dot c6" data-class="c6" (click)="selectColor($event)"></div>
-					<div class="color-dot c7" data-class="c7" (click)="selectColor($event)"></div>
-					<div class="color-dot c8" data-class="c8" (click)="selectColor($event)"></div>
+					<div class="color-dot c1"  data-class="c1"  (click)="selectColor($event)"></div>
+					<div class="color-dot c2"  data-class="c2"  (click)="selectColor($event)"></div>
+					<div class="color-dot c3"  data-class="c3"  (click)="selectColor($event)"></div>
+					<div class="color-dot c4"  data-class="c4"  (click)="selectColor($event)"></div>
+					<div class="color-dot c5"  data-class="c5"  (click)="selectColor($event)"></div>
+					<div class="color-dot c6"  data-class="c6"  (click)="selectColor($event)"></div>
+					<div class="color-dot c7"  data-class="c7"  (click)="selectColor($event)"></div>
+					<div class="color-dot c8"  data-class="c8"  (click)="selectColor($event)"></div>
+					<div class="color-dot c9"  data-class="c9"  (click)="selectColor($event)"></div>
+					<div class="color-dot c10" data-class="c10" (click)="selectColor($event)"></div>
+					<div class="color-dot c11" data-class="c11" (click)="selectColor($event)"></div>
+					<div class="color-dot c12" data-class="c12" (click)="selectColor($event)"></div>
+					<div class="color-dot c13" data-class="c13" (click)="selectColor($event)"></div>
+					<div class="color-dot c14" data-class="c14" (click)="selectColor($event)"></div>
+					<div class="color-dot c15" data-class="c15" (click)="selectColor($event)"></div>
+					<div class="color-dot c16" data-class="c16" (click)="selectColor($event)"></div>
 				</div>
 			</div>
 			<div style="display:flex;gap:8px;margin-top:8px;">

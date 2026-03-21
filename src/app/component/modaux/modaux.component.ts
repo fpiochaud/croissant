@@ -32,6 +32,8 @@ export class ModauxComponent {
         setTimeout(() => {
           const nameInput = document.getElementById('edit-name') as HTMLInputElement | null;
           if (nameInput) nameInput.value = ep.name;
+          const initialsInput = document.getElementById('edit-initials') as HTMLInputElement | null;
+          if (initialsInput) initialsInput.value = ep.initials ?? '';
           const emailInput = document.getElementById('edit-email') as HTMLInputElement | null;
           if (emailInput) emailInput.value = ep.email ?? '';
           document.querySelectorAll('#edit-color-picker .color-dot').forEach(dot => dot.classList.remove('selected'));
@@ -73,12 +75,15 @@ export class ModauxComponent {
   saveEdit() {
     const ep = this.editPerson();
     if (!ep) return;
-    const name   = (document.getElementById('edit-name') as HTMLInputElement)?.value.trim();
-    const email  = (document.getElementById('edit-email') as HTMLInputElement)?.value.trim().toLowerCase();
-    const status = (document.getElementById('edit-status') as HTMLSelectElement)?.value as Person['status'];
-    const color  = this.color();
-    if (!name) return;
-    this.croissant.updatePerson({ ...ep, name, status, color, email: email || undefined });
+    const name     = (document.getElementById('edit-name') as HTMLInputElement)?.value.trim();
+    const initials = (document.getElementById('edit-initials') as HTMLInputElement)?.value.trim().toUpperCase();
+    const email    = (document.getElementById('edit-email') as HTMLInputElement)?.value.trim().toLowerCase();
+    const status   = (document.getElementById('edit-status') as HTMLSelectElement)?.value as Person['status'];
+    const color    = this.color();
+    if (!name || !initials || !email) return;
+    const updated = { ...ep, name, initials, status, color, email };
+    if (!this.croissant.isAdmin()) delete (updated as any).email;
+    this.croissant.updatePerson(updated);
     this.croissant.closeModals();
     this.croissant.editPerson.set(null);
   }
