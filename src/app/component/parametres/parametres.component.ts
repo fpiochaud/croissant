@@ -10,27 +10,28 @@ import { CroissantService } from '../../croissant.service';
 export class ParametresComponent {
   teamName = computed(() => this.croissant.state().teamName);
   memberCount = computed(() => this.croissant.state().persons.length);
+
+  firestoreStatus = computed(() => {
+    switch (this.croissant.syncStatus()) {
+      case 'online':  return '✅ Connecté';
+      case 'syncing': return '⏳ Synchronisation…';
+      case 'offline': return '❌ Hors ligne';
+    }
+  });
+
+  fcmLabel = computed(() => {
+    switch (this.croissant.fcmStatus()) {
+      case 'granted': return '✅ Oui';
+      case 'denied':  return '❌ Refusé';
+      case 'pending': return '⏳ En attente…';
+      case 'idle':    return 'Non';
+    }
+  });
+
   constructor(public croissant: CroissantService) {}
 
   openTab(tab: 'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params') {
     this.croissant.openTab(tab);
-  }
-
-  exportData() {
-    const data = JSON.stringify(this.croissant.state(), null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'croissant-data.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  resetData() {
-    if (confirm('Réinitialiser toutes les données ?')) {
-      location.reload();
-    }
   }
 
   logout() {

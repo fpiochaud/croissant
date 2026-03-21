@@ -7,10 +7,8 @@
 		</div>
 		<div class="sec-label">Firebase</div>
 		<div class="settings-section">
-			<div class="settings-row"><span class="settings-icon">🔥</span><span class="settings-label">Statut Firestore</span><span class="settings-value" id="param-firebase-status">—</span></div>
-			<div class="settings-row"><span class="settings-icon">🔔</span><span class="settings-label">Token FCM enregistré</span><span class="settings-value" id="param-fcm-status">Non</span></div>
-			<div class="settings-row" (click)="exportData()"><span class="settings-icon">📤</span><span class="settings-label">Exporter les données JSON</span></div>
-			<div class="settings-row" (click)="resetData()"><span class="settings-icon">🗑️</span><span class="settings-label" style="color:var(--red)">Réinitialiser</span></div>
+			<div class="settings-row"><span class="settings-icon">🔥</span><span class="settings-label">Statut Firestore</span><span class="settings-value">{{ firestoreStatus() }}</span></div>
+			<div class="settings-row"><span class="settings-icon">🔔</span><span class="settings-label">Token FCM enregistré</span><span class="settings-value">{{ fcmLabel() }}</span></div>
 		</div>
 		<div class="sec-label">Installer l'application</div>
 		<div class="install-card">
