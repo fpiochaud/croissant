@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.8 — 2026-03-21
+
+- feat: notifications push pour les remplacements (cron 10min)
+
 ## v1.0.7 — 2026-03-21
 
 - feat: statuts Firebase dynamiques dans Réglages, génération firebase-config.js en CI
