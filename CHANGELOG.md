@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.9 — 2026-03-21
+
+- feat: changement du favicon + gestion de la rotatation des membres
+
 ## v1.0.8 — 2026-03-21
 
 - feat: notifications push pour les remplacements (cron 10min)
