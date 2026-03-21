@@ -130,7 +130,7 @@ export class CroissantService {
       let role = 'member';
 
       if (!userSnap.exists()) {
-        await setDoc(userRef, { email: user.email, role: 'member', createdAt: serverTimestamp() });
+        await setDoc(userRef, { email: user.email, role: 'member', notifPrefs: { eve: true, morning: true, swap: true }, createdAt: serverTimestamp() });
         await this.addPersonFromEmail(user.email ?? '');
       } else {
         role = userSnap.data()?.['role'] ?? 'member';
@@ -142,7 +142,7 @@ export class CroissantService {
 
       if (!this.listenersInitialized) {
         this.listenersInitialized = true;
-        this.initFirestoreListeners();
+        this.initFirestoreListeners(user.uid);
         this.autoInitFCM();
       }
     });
@@ -185,8 +185,14 @@ export class CroissantService {
 
   // ── Firestore ─────────────────────────────────────────────────────────────
 
-  private initFirestoreListeners() {
+  private initFirestoreListeners(uid: string) {
     const teamDoc = doc(this.db, 'teams', this.teamId);
+
+    // Préférences de notification par utilisateur
+    onSnapshot(doc(this.db, 'users', uid), (snap) => {
+      const notifPrefs = snap.data()?.['notifPrefs'] ?? { eve: false, morning: false, swap: false };
+      this.state.update(s => ({ ...s, notifPrefs }));
+    });
 
     onSnapshot(teamDoc, (snap) => {
       if (snap.exists()) {
@@ -196,14 +202,12 @@ export class CroissantService {
           teamName:     d['teamName']     ?? s.teamName,
           currentIndex: d['currentIndex'] ?? s.currentIndex,
           rules:        d['rules']        ?? s.rules,
-          notifPrefs:   d['notifPrefs']   ?? s.notifPrefs,
         }));
       } else {
         setDoc(teamDoc, {
           teamName: 'Mon équipe',
           currentIndex: 0,
           rules: { auto: true, catch: true, manual: false },
-          notifPrefs: { eve: false, morning: false, swap: false },
         });
       }
       this.syncStatus.set('online');
@@ -245,7 +249,8 @@ export class CroissantService {
   setNotifPref(pref: keyof AppState['notifPrefs'], value: boolean) {
     const notifPrefs = { ...this.state().notifPrefs, [pref]: value };
     this.state.update(s => ({ ...s, notifPrefs }));
-    updateDoc(doc(this.db, 'teams', this.teamId), { notifPrefs });
+    const uid = this.currentUser()?.uid;
+    if (uid) updateDoc(doc(this.db, 'users', uid), { notifPrefs });
   }
 
   setRule(rule: keyof AppState['rules'], value: boolean) {

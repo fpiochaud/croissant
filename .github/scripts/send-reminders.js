@@ -30,15 +30,28 @@ async function getNextPerson(teamId) {
   return persons[currentIndex % persons.length];
 }
 
-async function getTokens(teamId) {
-  const snap = await db.collection('teams').doc(teamId).collection('tokens').get();
-  return snap.docs.map(d => d.data().token).filter(Boolean);
+async function getFilteredTokens(teamId, type) {
+  const tokenSnap = await db.collection('teams').doc(teamId).collection('tokens').get();
+  const allTokenDocs = tokenSnap.docs.map(d => d.data()).filter(d => d.token);
+
+  // Récupère les utilisateurs et leurs préférences
+  const usersSnap = await db.collection('users').get();
+  const prefsByEmail = {};
+  usersSnap.docs.forEach(d => {
+    const data = d.data();
+    if (data.email) prefsByEmail[data.email] = data.notifPrefs ?? {};
+  });
+
+  // Garde uniquement les tokens des utilisateurs ayant la préférence activée
+  return allTokenDocs
+    .filter(d => !d.email || (prefsByEmail[d.email]?.[type] === true))
+    .map(d => d.token);
 }
 
-async function sendToTeam(teamId, title, body) {
-  const tokens = await getTokens(teamId);
+async function sendToTeam(teamId, type, title, body) {
+  const tokens = await getFilteredTokens(teamId, type);
   if (!tokens.length) {
-    console.log(`[${teamId}] Aucun token — notification ignorée.`);
+    console.log(`[${teamId}] Aucun token éligible — notification ignorée.`);
     return;
   }
 
@@ -93,12 +106,6 @@ async function main() {
   }
 
   for (const teamDoc of teamsSnap.docs) {
-    const notifPrefs = teamDoc.data().notifPrefs ?? {};
-    if (!notifPrefs[type]) {
-      console.log(`[${teamDoc.id}] Préférence "${type}" désactivée — ignoré.`);
-      continue;
-    }
-
     const person = await getNextPerson(teamDoc.id);
     if (!person) {
       console.log(`[${teamDoc.id}] Aucune personne dans la rotation.`);
@@ -107,7 +114,7 @@ async function main() {
 
     const { title, body } = buildMessage(type, person.name);
     console.log(`[${teamDoc.id}] Envoi : "${title}" — "${body}"`);
-    await sendToTeam(teamDoc.id, title, body);
+    await sendToTeam(teamDoc.id, type, title, body);
   }
 }
 

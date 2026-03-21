@@ -10,9 +10,20 @@ admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db  = admin.firestore();
 const fcm = admin.messaging();
 
-async function getTokens(teamId) {
-  const snap = await db.collection('teams').doc(teamId).collection('tokens').get();
-  return snap.docs.map(d => d.data().token).filter(Boolean);
+async function getFilteredTokens(teamId) {
+  const tokenSnap = await db.collection('teams').doc(teamId).collection('tokens').get();
+  const allTokenDocs = tokenSnap.docs.map(d => d.data()).filter(d => d.token);
+
+  const usersSnap = await db.collection('users').get();
+  const prefsByEmail = {};
+  usersSnap.docs.forEach(d => {
+    const data = d.data();
+    if (data.email) prefsByEmail[data.email] = data.notifPrefs ?? {};
+  });
+
+  return allTokenDocs
+    .filter(d => !d.email || (prefsByEmail[d.email]?.swap === true))
+    .map(d => d.token);
 }
 
 async function main() {
@@ -24,17 +35,7 @@ async function main() {
 
   for (const notifDoc of snap.docs) {
     const { teamId, title, body } = notifDoc.data();
-
-    // Vérifie que la préférence swap est activée pour l'équipe
-    const teamSnap = await db.collection('teams').doc(teamId).get();
-    const notifPrefs = teamSnap.data()?.notifPrefs ?? {};
-    if (!notifPrefs.swap) {
-      console.log(`[${teamId}] Préférence swap désactivée — ignoré.`);
-      await notifDoc.ref.delete();
-      continue;
-    }
-
-    const tokens = await getTokens(teamId);
+    const tokens = await getFilteredTokens(teamId);
     if (!tokens.length) {
       console.log(`[${teamId}] Aucun token — notification ignorée.`);
       await notifDoc.ref.delete();
