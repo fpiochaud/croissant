@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.0 — 2026-03-21
+
+- feat: preference notif par utilisateur
+
 ## v1.0.10 — 2026-03-21
 
 - fix: correction du favicon pour apple
