@@ -81,6 +81,7 @@ export class CroissantService {
     currentIndex: 0,
   });
 
+  darkMode    = signal<boolean>(localStorage.getItem('darkMode') === 'true');
   syncStatus  = signal<'syncing' | 'online' | 'offline'>('syncing');
   activeTab   = signal<'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params'>('rotation');
   showAddModal  = signal(false);
@@ -98,6 +99,8 @@ export class CroissantService {
     this.app  = initializeApp(environment.firebase);
     this.db   = getFirestore(this.app);
     this.auth = getAuth(this.app);
+    // Applique le dark mode dès le démarrage (depuis localStorage) pour éviter le flash
+    document.body.classList.toggle('dark', this.darkMode());
     this.initAuth();
   }
 
@@ -189,10 +192,14 @@ export class CroissantService {
   private initFirestoreListeners(uid: string) {
     const teamDoc = doc(this.db, 'teams', this.teamId);
 
-    // Préférences de notification par utilisateur
+    // Préférences utilisateur (notifs + dark mode)
     onSnapshot(doc(this.db, 'users', uid), (snap) => {
-      const notifPrefs = snap.data()?.['notifPrefs'] ?? { eve: false, morning: false, swap: false };
+      const data = snap.data() ?? {};
+      const notifPrefs = data['notifPrefs'] ?? { eve: false, morning: false, swap: false };
       this.state.update(s => ({ ...s, notifPrefs }));
+      if (data['darkMode'] !== undefined) {
+        this.applyDarkMode(data['darkMode']);
+      }
     });
 
     onSnapshot(teamDoc, (snap) => {
@@ -245,6 +252,18 @@ export class CroissantService {
 
   openTab(tab: 'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params') {
     this.activeTab.set(tab);
+  }
+
+  private applyDarkMode(value: boolean) {
+    this.darkMode.set(value);
+    document.body.classList.toggle('dark', value);
+    localStorage.setItem('darkMode', String(value));
+  }
+
+  setDarkMode(value: boolean) {
+    this.applyDarkMode(value);
+    const uid = this.currentUser()?.uid;
+    if (uid) updateDoc(doc(this.db, 'users', uid), { darkMode: value });
   }
 
   setNotifPref(pref: keyof AppState['notifPrefs'], value: boolean) {

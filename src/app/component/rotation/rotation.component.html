@@ -3,7 +3,7 @@
 		<div class="sec-label">Ordre de passage</div>
 		<div id="rotation-list">
 			<div *ngFor="let person of personsWithDates()" class="person-card" (click)="editPerson(person)">
-				<div class="rank-badge">{{person.initials}}</div>
+				<div class="rank-badge" [ngClass]="person.color">{{person.initials}}</div>
 				<div class="person-info">
 					<div class="person-name">{{person.name}}</div>
 					<div class="person-meta">

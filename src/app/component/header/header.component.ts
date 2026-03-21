@@ -1,28 +1,37 @@
-import { Component, computed, signal, HostListener } from '@angular/core';
-import { NgIf } from '@angular/common';
-import { CroissantService } from '../../croissant.service';
+import { Component, computed, signal, HostListener, inject } from '@angular/core';
+import { NgIf, NgClass } from '@angular/common';
+import { CroissantService, getNextMonday } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-header',
-  imports: [NgIf],
+  imports: [NgIf, NgClass],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
-  teamName = computed(() => this.croissant.state().teamName);
-  nextName = computed(() => {
-    const s = this.croissant.state();
-    return s.persons[s.currentIndex]?.name ?? '—';
-  });
-  nextDate = computed(() => '—');
-  isNextUser = computed(() => false);
-  showDropdown = signal(false);
+  croissant = inject(CroissantService);
 
-  constructor(public croissant: CroissantService) {}
+  teamName   = computed(() => this.croissant.state().teamName);
+  nextPerson = computed(() => this.croissant.state().persons[0] ?? null);
+  nextName   = computed(() => this.nextPerson()?.name ?? '—');
+  nextInitials = computed(() => this.nextPerson()?.initials ?? '?');
+  nextColor  = computed(() => this.nextPerson()?.color ?? '');
+  nextDate   = computed(() => {
+    const person = this.nextPerson();
+    if (!person) return '—';
+    return getNextMonday().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  });
+  isNextUser = computed(() => this.nextPerson()?.email === this.croissant.currentUser()?.email);
+  showDropdown = signal(false);
+  darkMode = this.croissant.darkMode;
+
+  toggleDarkMode() {
+    this.croissant.setDarkMode(!this.darkMode());
+  }
 
   toggleDropdown(event: Event) {
     event.stopPropagation();
-    this.showDropdown.update(v => !v);
+    this.showDropdown.update((v: boolean) => !v);
   }
 
   @HostListener('document:click')

@@ -1,4 +1,5 @@
 <div class="header">
+	<div class="header-deco" aria-hidden="true"></div>
 	<div class="header-top">
 		<div>
 			<div class="header-title">🥐 Croissants</div>
@@ -6,11 +7,23 @@
 		</div>
 		<div class="account-menu">
 			<button class="header-settings" (click)="reload()" title="Rafraîchir">↺</button>
-			<button class="header-settings" (click)="toggleDropdown($event)">👤</button>
+			<button class="header-settings" (click)="toggleDropdown($event)">
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+				</svg>
+			</button>
 			@if (showDropdown()) {
 				<div class="account-dropdown" (click)="$event.stopPropagation()">
 					<div class="account-dropdown-email">{{ croissant.currentUser()?.email }}</div>
 					<div class="account-dropdown-role">{{ croissant.isAdmin() ? 'Administrateur' : 'Membre' }}</div>
+					<div class="account-dropdown-divider"></div>
+					<div class="account-dropdown-darkmode" (click)="toggleDarkMode()">
+						<span>🌙 Mode sombre</span>
+						<label class="toggle-switch" (click)="$event.stopPropagation()">
+							<input type="checkbox" [checked]="darkMode()" (change)="toggleDarkMode()" />
+							<span class="toggle-track"></span>
+						</label>
+					</div>
 					<div class="account-dropdown-divider"></div>
 					<button class="account-dropdown-logout" (click)="logout()">🚪 Se déconnecter</button>
 				</div>
@@ -18,7 +31,7 @@
 		</div>
 	</div>
 	<div class="next-card">
-		<div class="next-avatar">?</div>
+		<div class="next-avatar" [ngClass]="nextColor()">{{ nextInitials() }}</div>
 		<div>
 			<div class="next-label">Prochain tour</div>
 			<div class="next-name">{{ nextName() }}</div>

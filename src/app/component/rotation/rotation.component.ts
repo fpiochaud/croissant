@@ -1,10 +1,10 @@
 import { Component, computed } from '@angular/core';
-import { NgFor } from '@angular/common';
+import { NgFor, NgClass } from '@angular/common';
 import { CroissantService, Person, getNextMonday } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-rotation',
-  imports: [NgFor],
+  imports: [NgFor, NgClass],
   templateUrl: './rotation.component.html',
   styleUrl: './rotation.component.css',
 })
