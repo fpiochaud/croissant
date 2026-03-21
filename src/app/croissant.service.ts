@@ -225,6 +225,18 @@ export class CroissantService {
     updateDoc(doc(this.db, 'teams', this.teamId), { rules });
   }
 
+  async addPendingSwapNotification(absentName: string, replacementName: string) {
+    if (!this.state().notifPrefs.swap) return;
+    await addDoc(collection(this.db, 'pendingSwapNotifications'), {
+      teamId: this.teamId,
+      title: '🔄 Remplacement croissants',
+      body: replacementName
+        ? `${absentName} est absent(e) — c'est ${replacementName} qui apporte les croissants !`
+        : `${absentName} est absent(e) — pas de remplaçant disponible.`,
+      createdAt: serverTimestamp(),
+    });
+  }
+
   async addHistory(event: { date: string; type: string; details: any }) {
     this.state.update(s => ({ ...s, history: [event, ...s.history] }));
     await addDoc(collection(this.db, 'teams', this.teamId, 'history'), {

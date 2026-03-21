@@ -1,0 +1,27 @@
+name: Swap Notifications
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installer les dépendances
+        working-directory: .github/scripts
+        run: npm install
+
+      - name: Envoyer les notifications de remplacement
+        working-directory: .github/scripts
+        run: node send-swap-notifs.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

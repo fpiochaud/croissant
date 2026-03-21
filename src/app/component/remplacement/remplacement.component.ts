@@ -48,6 +48,10 @@ export class RemplacementComponent {
     const preview = this.swapPreview();
     if (preview?.absent) {
       this.croissant.setPersonAbsent(preview.absent.id);
+      this.croissant.addPendingSwapNotification(
+        preview.absent.name,
+        preview.replacement?.name ?? ''
+      );
       this.croissant.addHistory({
         date: new Date().toLocaleString(),
         type: 'Absence',
