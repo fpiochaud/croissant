@@ -5,7 +5,7 @@ import {
   onSnapshot, setDoc, updateDoc, addDoc, deleteDoc, getDoc, getDocs,
   orderBy, query, where, limit, serverTimestamp, writeBatch, Firestore
 } from 'firebase/firestore';
-import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
+import { getMessaging, getToken, deleteToken, onMessage, Messaging } from 'firebase/messaging';
 import {
   getAuth, signInWithEmailAndPassword, signOut,
   onAuthStateChanged, Auth, User
@@ -65,6 +65,7 @@ export class CroissantService {
   private db: Firestore;
   private auth: Auth;
   private messaging: Messaging | null = null;
+  private currentFcmToken: string | null = null;
   private teamId = environment.teamId;
   private listenersInitialized = false;
   private rotationChecked = false;
@@ -402,6 +403,19 @@ export class CroissantService {
     }
   }
 
+  async removeFCM(): Promise<void> {
+    try {
+      if (this.messaging) await deleteToken(this.messaging);
+      if (this.currentFcmToken) {
+        await deleteDoc(doc(this.db, 'teams', this.teamId, 'tokens', this.currentFcmToken.slice(0, 40)));
+        this.currentFcmToken = null;
+      }
+    } catch (err) {
+      console.error('FCM remove error:', err);
+    }
+    this.fcmStatus.set('idle');
+  }
+
   async initFCM(silent = false): Promise<void> {
     if (typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
       if (!silent) this.fcmStatus.set('denied');
@@ -429,10 +443,11 @@ export class CroissantService {
       });
 
       if (token) {
+        this.currentFcmToken = token;
         this.fcmStatus.set('granted');
         await setDoc(
           doc(this.db, 'teams', this.teamId, 'tokens', token.slice(0, 40)),
-          { token, updatedAt: serverTimestamp() }
+          { token, email: this.currentUser()?.email ?? null, updatedAt: serverTimestamp() }
         );
       }
 

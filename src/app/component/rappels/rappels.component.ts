@@ -16,6 +16,10 @@ export class RappelsComponent {
     await this.croissant.initFCM();
   }
 
+  async removeFCM() {
+    await this.croissant.removeFCM();
+  }
+
   toggleNotif(pref: 'eve' | 'morning' | 'swap') {
     this.croissant.setNotifPref(pref, !this.notifPrefs()[pref]);
   }

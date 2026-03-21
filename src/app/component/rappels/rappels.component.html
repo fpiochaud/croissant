@@ -15,9 +15,11 @@
 		}
 
 		@if (fcmStatus() === 'granted') {
-			<div class="status-pill sp-ok" style="display:inline-flex;gap:6px;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:4px;">
+			<div class="status-pill sp-ok" style="display:inline-flex;gap:6px;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:8px;">
 				✅ Notifications activées sur cet appareil
 			</div>
+			<br>
+			<button class="btn" style="background:var(--red);color:#fff;font-size:13px;padding:8px 16px;" (click)="removeFCM()">🔕 Désactiver les notifications</button>
 		}
 
 		@if (fcmStatus() === 'denied') {
