@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.0 — 2026-03-21
+
+- feat: changement du style
+- fix: taille des polices
+
 ## v1.3.0 — 2026-03-21
 
 - feat: relooking + mode sombre
