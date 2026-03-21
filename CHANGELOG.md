@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.0 — 2026-03-21
+
+- feat: affichage des remplacant en cas d'absence.
+- feat: notification sur remplacement manuel
+- fix: correction favicon
+
 ## v1.1.0 — 2026-03-21
 
 - feat: preference notif par utilisateur
