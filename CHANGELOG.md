@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.7 — 2026-03-21
+
+- feat: statuts Firebase dynamiques dans Réglages, génération firebase-config.js en CI
+
 ## v1.0.6 — 2026-03-20
 
 - ci: inject Firebase config from secrets at build time
