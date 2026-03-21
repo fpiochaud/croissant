@@ -15,8 +15,23 @@
 				<div class="swap-header">🔄 Remplacement proposé</div>
 				<div class="swap-flow" id="swap-flow"></div>
 				<div class="swap-note" id="swap-note"></div>
-				<button class="btn btn-primary" (click)="confirmSwap()">✅ Confirmer — notifier tout le monde</button>
-				<button class="btn btn-outline" (click)="manualSwap()">👥 Choisir manuellement</button>
+				@if (!manualMode()) {
+					<button class="btn btn-primary" (click)="confirmSwap()">✅ Confirmer — notifier tout le monde</button>
+					<button class="btn btn-outline" (click)="manualSwap()">👥 Choisir manuellement</button>
+				} @else {
+					<div class="field" style="margin:8px 0;">
+						<select (change)="manualReplacementId.set($any($event.target).value)">
+							<option value="">— Choisir le remplaçant —</option>
+							@for (person of persons(); track person.id) {
+								@if (person.id !== swapPreview()?.absent?.id && person.status !== 'absent') {
+									<option [value]="person.id">{{person.name}}</option>
+								}
+							}
+						</select>
+					</div>
+					<button class="btn btn-primary" [disabled]="!manualReplacementId()" (click)="confirmManualSwap()">✅ Confirmer — notifier tout le monde</button>
+					<button class="btn btn-outline" (click)="manualMode.set(false)">↩ Annuler</button>
+				}
 			</div>
 		</div>
 		<div class="sec-label">Règles de remplacement</div>

@@ -13,6 +13,8 @@ export class RemplacementComponent {
   rules = computed(() => this.croissant.state().rules);
   absentId = signal<string>('');
   swapPreview = signal<{ absent?: Person; replacement?: Person } | null>(null);
+  manualMode = signal(false);
+  manualReplacementId = signal<string>('');
 
   constructor(public croissant: CroissantService) {}
 
@@ -61,16 +63,37 @@ export class RemplacementComponent {
             : `${preview.absent.name} absent(e), pas de remplaçant disponible`,
         },
       });
-      this.absentId.set('');
-      this.swapPreview.set(null);
-      (document.getElementById('absent-select') as HTMLSelectElement).value = '';
-      const domPreview = document.getElementById('swap-preview');
-      if (domPreview) domPreview.style.display = 'none';
+      this.reset();
     }
   }
 
   manualSwap() {
-    alert('Sélection manuelle à implémenter');
+    this.manualMode.set(true);
+    this.manualReplacementId.set('');
+  }
+
+  confirmManualSwap() {
+    const absent = this.swapPreview()?.absent;
+    const replacement = this.persons().find(p => p.id === this.manualReplacementId());
+    if (!absent || !replacement) return;
+    this.croissant.setPersonAbsent(absent.id, replacement.name);
+    this.croissant.addPendingSwapNotification(absent.name, replacement.name);
+    this.croissant.addHistory({
+      date: new Date().toLocaleString(),
+      type: 'Absence',
+      details: { text: `${absent.name} remplacé(e) manuellement par ${replacement.name}` },
+    });
+    this.reset();
+  }
+
+  private reset() {
+    this.absentId.set('');
+    this.swapPreview.set(null);
+    this.manualMode.set(false);
+    this.manualReplacementId.set('');
+    (document.getElementById('absent-select') as HTMLSelectElement).value = '';
+    const domPreview = document.getElementById('swap-preview');
+    if (domPreview) domPreview.style.display = 'none';
   }
 
   toggleRule(rule: 'auto' | 'catch' | 'manual') {
