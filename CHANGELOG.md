@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.3.0 — 2026-03-21
+
+- feat: relooking + mode sombre
+- feat: deplacement du compte dans le header
+- feat: implémenter le remplacement manuel.
+- feat: supprimer le bouton ajouter personne
+
 ## v1.2.0 — 2026-03-21
 
 - feat: affichage des remplacant en cas d'absence.
