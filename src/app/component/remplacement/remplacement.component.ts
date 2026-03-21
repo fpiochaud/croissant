@@ -47,7 +47,7 @@ export class RemplacementComponent {
   confirmSwap() {
     const preview = this.swapPreview();
     if (preview?.absent) {
-      this.croissant.setPersonAbsent(preview.absent.id);
+      this.croissant.setPersonAbsent(preview.absent.id, preview.replacement?.name);
       this.croissant.addPendingSwapNotification(
         preview.absent.name,
         preview.replacement?.name ?? ''

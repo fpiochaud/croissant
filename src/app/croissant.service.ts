@@ -20,6 +20,7 @@ export interface Person {
   status: 'ok' | 'absent' | 'catch';
   rank?: number;
   email?: string;
+  replacedBy?: string | null;
 }
 
 export interface AppState {
@@ -280,12 +281,12 @@ export class CroissantService {
     });
   }
 
-  setPersonAbsent(personId: string) {
+  setPersonAbsent(personId: string, replacedBy?: string) {
     this.state.update(s => ({
       ...s,
-      persons: s.persons.map(p => p.id === personId ? { ...p, status: 'absent' } : p),
+      persons: s.persons.map(p => p.id === personId ? { ...p, status: 'absent', replacedBy: replacedBy ?? null } : p),
     }));
-    updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), { status: 'absent' });
+    updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), { status: 'absent', replacedBy: replacedBy ?? null });
   }
 
   setPersonOk(personId: string) {

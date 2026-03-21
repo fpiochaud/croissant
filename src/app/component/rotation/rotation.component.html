@@ -6,7 +6,13 @@
 				<div class="rank-badge">{{person.initials}}</div>
 				<div class="person-info">
 					<div class="person-name">{{person.name}}</div>
-					<div class="person-meta">🗓 Prévu le {{person.dateLabel}}</div>
+					<div class="person-meta">
+						@if (person.status === 'absent') {
+							⛔ Absent le {{person.dateLabel}}{{ person.replacedBy ? ' — remplacé par ' + person.replacedBy : '' }}
+						} @else {
+							🗓 Prévu le {{person.dateLabel}}
+						}
+					</div>
 				</div>
 				<div class="card-actions">
 					@if (isCurrentUser(person) && !isFirst(person)) {
