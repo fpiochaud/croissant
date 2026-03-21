@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.2 — 2026-03-21
+
+- fix: correction en cas de remplacement.
+
 ## v1.4.1 — 2026-03-21
 
 - fix: correction de l'heure de notification le lundi matin
