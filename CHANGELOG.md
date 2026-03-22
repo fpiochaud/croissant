@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.7 — 2026-03-22
+
+- fix: contenu de la notif
+
 ## v1.6.6 — 2026-03-22
 
 - fix: correction doublon notification
