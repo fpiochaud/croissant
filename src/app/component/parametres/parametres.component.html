@@ -1,6 +1,9 @@
 <div class="tab" [class.active]="croissant.activeTab() === 'params'" id="tab-params">
 	<div class="section-pad">
-<div class="sec-label">Firebase</div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;">
+			<div class="sec-label">Firebase</div>
+			<span style="font-size:11px;color:var(--text-hint);">🥐 v{{version}}</span>
+		</div>
 		<div class="settings-section">
 			<div class="settings-row"><span class="settings-icon">🔥</span><span class="settings-label">Statut Firestore</span><span class="settings-value">{{ firestoreStatus() }}</span></div>
 			<div class="settings-row"><span class="settings-icon">🔔</span><span class="settings-label">Token FCM enregistré</span><span class="settings-value">{{ fcmLabel() }}</span></div>
@@ -28,6 +31,5 @@
 				<div class="install-note">⚠️ Les notifications push nécessitent iOS 16.4+ et l'app installée depuis Safari.</div>
 			</div>
 		</div>
-<div style="text-align:center;padding:24px 0 8px;font-size:11px;color:var(--text-hint);">🥐 Croissants du lundi v2.0 — Firebase edition</div>
 	</div>
 </div>
