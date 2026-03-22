@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.2 — 2026-03-22
+
+- fix: correction doublon
+
 ## v1.6.1 — 2026-03-22
 
 - fix: notification en double
