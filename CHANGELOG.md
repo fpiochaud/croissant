@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.6.0 — 2026-03-22
+
+- fix: décalage des cron
+- fix: correction de l'envoi des notifs
+- feat: purge history 6 mois
+- fix: affichage rattrapage
+- fix: pour le rattrapage
+- fix: affichage de la version de l'application
+
 ## v1.5.0 — 2026-03-22
 
 - fix: remplacement affichage
