@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: 'Forcer l'envoi même si déjà envoyé aujourd'hui'
+        description: "Forcer l'envoi même si déjà envoyé aujourd'hui"
         type: boolean
         default: false
 
