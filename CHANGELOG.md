@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.4 — 2026-03-22
+
+- fix: correction script reminder
+
 ## v1.6.3 — 2026-03-22
 
 - fix: correction notif
