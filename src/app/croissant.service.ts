@@ -367,6 +367,18 @@ export class CroissantService {
     });
     batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: mostRecentPastMonday });
     await batch.commit();
+
+    // Purge de l'historique : on ne conserve que les 2 derniers mois
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const oldHistorySnap = await getDocs(
+      query(collection(this.db, 'teams', this.teamId, 'history'), where('timestamp', '<', sixMonthsAgo))
+    );
+    if (!oldHistorySnap.empty) {
+      const purgeBatch = writeBatch(this.db);
+      oldHistorySnap.docs.forEach(d => purgeBatch.delete(d.ref));
+      await purgeBatch.commit();
+    }
   }
 
   movePersonToTop(personId: string) {
