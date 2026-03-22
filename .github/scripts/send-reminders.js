@@ -78,9 +78,8 @@ async function sendToTeam(teamId, type, title, body) {
 
   const response = await fcm.sendEachForMulticast({
     tokens,
-    notification: { title, body },
+    data: { title, body },
     webpush: {
-      notification: { icon: '/favicon.ico', badge: '/favicon.ico' },
       fcmOptions: { link: '/' },
     },
   });
