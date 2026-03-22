@@ -12,6 +12,8 @@
 							@if (person.replacedBy && person.absentDate !== person.dateLabel) {
 								<div>🗓 Rattrapage le {{person.dateLabel}}</div>
 							}
+						} @else if (person.status === 'catch' && person.absentDate) {
+							🗓 Prévu le {{person.dateLabel}} — rattrapage du {{person.absentDate}}
 						} @else {
 							🗓 Prévu le {{person.dateLabel}}
 						}

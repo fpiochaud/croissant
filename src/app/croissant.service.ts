@@ -342,7 +342,15 @@ export class CroissantService {
     updated.push(first);
 
     const batch = writeBatch(this.db);
-    updated.forEach((p, i) => batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), { rank: i }));
+    updated.forEach((p, i) => {
+      const update: any = { rank: i };
+      // Les absents passent en mode "rattrapage" (leur absentDate est conservé pour l'affichage)
+      if (p.status === 'absent') {
+        update.status = 'catch';
+        update.replacedBy = null;
+      }
+      batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), update);
+    });
     batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: mostRecentPastMonday });
     await batch.commit();
   }
