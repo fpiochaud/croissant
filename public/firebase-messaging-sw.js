@@ -6,12 +6,16 @@ self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
-  const raw = event.data.json();
+  const payload = event.data.json();
+  const title = payload.data?.msgTitle ?? '🥐 Croissants du lundi';
+  const body  = payload.data?.msgBody  ?? '';
 
-  // DEBUG — à supprimer après diagnostic
   event.waitUntil(
-    self.registration.showNotification('DEBUG payload', {
-      body: JSON.stringify(raw),
+    self.registration.showNotification(title, {
+      body,
+      icon:  '/favicon.ico',
+      badge: '/favicon.ico',
+      data:  { url: '/' },
     })
   );
 });
