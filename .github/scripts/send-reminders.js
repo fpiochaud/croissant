@@ -20,14 +20,11 @@ const fcm = admin.messaging();
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 async function getNextPerson(teamId) {
-  const [teamSnap, personsSnap] = await Promise.all([
-    db.collection('teams').doc(teamId).get(),
-    db.collection('teams').doc(teamId).collection('persons').orderBy('rank').get(),
-  ]);
-  const currentIndex = teamSnap.data()?.currentIndex ?? 0;
+  const personsSnap = await db.collection('teams').doc(teamId).collection('persons').orderBy('rank').get();
   const persons = personsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   if (!persons.length) return null;
-  return persons[currentIndex % persons.length];
+  // Le premier de la liste (rank=0) est toujours le prochain
+  return persons[0];
 }
 
 async function getFilteredTokens(teamId, type) {
@@ -99,23 +96,16 @@ function buildMessage(type, personName) {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
-  const teamsSnap = await db.collection('teams').get();
-  if (teamsSnap.empty) {
-    console.log('Aucune équipe trouvée.');
+  const teamId = 'equipe-lundi';
+  const person = await getNextPerson(teamId);
+  if (!person) {
+    console.log(`[${teamId}] Aucune personne dans la rotation.`);
     return;
   }
 
-  for (const teamDoc of teamsSnap.docs) {
-    const person = await getNextPerson(teamDoc.id);
-    if (!person) {
-      console.log(`[${teamDoc.id}] Aucune personne dans la rotation.`);
-      continue;
-    }
-
-    const { title, body } = buildMessage(type, person.name);
-    console.log(`[${teamDoc.id}] Envoi : "${title}" — "${body}"`);
-    await sendToTeam(teamDoc.id, type, title, body);
-  }
+  const { title, body } = buildMessage(type, person.name);
+  console.log(`[${teamId}] Envoi : "${title}" — "${body}"`);
+  await sendToTeam(teamId, type, title, body);
 }
 
 main()
