@@ -1,28 +1,22 @@
-// firebase-messaging-sw.js — Service Worker FCM
-// Ce fichier doit rester à la racine du site (servi par Angular depuis public/)
+// firebase-messaging-sw.js — Service Worker FCM (raw push handler)
 
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
-// firebase-config.js définit self.FIREBASE_SW_CONFIG (gitignore — voir firebase-config.example.js)
-importScripts('/firebase-config.js');
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
 
-firebase.initializeApp(self.FIREBASE_SW_CONFIG);
+  const payload = event.data.json();
+  const title = payload.data?.msgTitle ?? payload.notification?.title ?? '🥐 Croissants du lundi';
+  const body  = payload.data?.msgBody  ?? payload.notification?.body  ?? '';
 
-const messaging = firebase.messaging();
-
-// Déclenché quand l'app est fermée ou en arrière-plan
-messaging.onBackgroundMessage((payload) => {
-  const title = payload.data?.msgTitle ?? '🥐 Croissants du lundi';
-  const body  = payload.data?.msgBody  ?? '';
-  self.registration.showNotification(title, {
-    body,
-    icon:  '/favicon.ico',
-    badge: '/favicon.ico',
-    data:  { url: payload.fcmOptions?.link ?? '/' },
-  });
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon:  '/favicon.ico',
+      badge: '/favicon.ico',
+      data:  { url: payload.fcmOptions?.link ?? payload.webpush?.fcmOptions?.link ?? '/' },
+    })
+  );
 });
 
-// Ouvre l'app au clic sur la notification
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(clients.openWindow(event.notification.data?.url ?? '/'));
