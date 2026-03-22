@@ -22,6 +22,8 @@ export interface Person {
   email?: string;
   replacedBy?: string | null;
   absentDate?: string | null;
+  catchupDate?: string | null;
+  promoted?: boolean | null;
 }
 
 export interface AppState {
@@ -289,17 +291,25 @@ export class CroissantService {
   }
 
   setPersonAbsent(personId: string, replacedBy?: string) {
-    // La date d'absence = prochain lundi (session pour laquelle l'absence est déclarée)
-    const absentDateLabel = getNextMonday().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+    // La date d'absence = date prévue de la personne selon son rang actuel
+    const persons = this.state().persons;
+    const idx = persons.findIndex(p => p.id === personId);
+    const absentDate = new Date(getNextMonday());
+    absentDate.setDate(absentDate.getDate() + idx * 7);
+    const absentDateLabel = absentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+    const catchupDateObj = new Date(absentDate);
+    catchupDateObj.setDate(catchupDateObj.getDate() + 7);
+    const catchupDateLabel = catchupDateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
     this.state.update(s => ({
       ...s,
       persons: s.persons.map(p => p.id === personId
-        ? { ...p, status: 'absent', replacedBy: replacedBy ?? null, absentDate: absentDateLabel }
+        ? { ...p, status: 'absent', replacedBy: replacedBy ?? null, absentDate: absentDateLabel, catchupDate: catchupDateLabel }
         : p),
     }));
     updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), {
-      status: 'absent', replacedBy: replacedBy ?? null, absentDate: absentDateLabel,
+      status: 'absent', replacedBy: replacedBy ?? null, absentDate: absentDateLabel, catchupDate: catchupDateLabel,
     });
   }
 
@@ -317,7 +327,11 @@ export class CroissantService {
     this.state.update(s => ({ ...s, persons: persons.map((p, i) => ({ ...p, rank: i })) }));
 
     const batch = writeBatch(this.db);
-    persons.forEach((p, i) => batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), { rank: i }));
+    persons.forEach((p, i) => {
+      const update: any = { rank: i };
+      if (p.id === absentId) update.promoted = true; // marque qu'il a été décalé
+      batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), update);
+    });
     batch.commit();
   }
 

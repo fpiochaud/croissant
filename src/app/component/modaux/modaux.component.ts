@@ -36,6 +36,8 @@ export class ModauxComponent {
           if (initialsInput) initialsInput.value = ep.initials ?? '';
           const emailInput = document.getElementById('edit-email') as HTMLInputElement | null;
           if (emailInput) emailInput.value = ep.email ?? '';
+          const statusSelect = document.getElementById('edit-status') as HTMLSelectElement | null;
+          if (statusSelect) statusSelect.value = ep.status === 'absent' ? 'absent' : 'disponible';
           document.querySelectorAll('#edit-color-picker .color-dot').forEach(dot => dot.classList.remove('selected'));
           document.querySelector(`#edit-color-picker .${ep.color}`)?.classList.add('selected');
         }, 0);
@@ -72,16 +74,40 @@ export class ModauxComponent {
     this.color.set('c1');
   }
 
+  canEditStatus(): boolean {
+    const ep = this.editPerson();
+    if (!ep) return false;
+    return this.croissant.isAdmin() || this.croissant.currentUser()?.email === ep.email;
+  }
+
   saveEdit() {
     const ep = this.editPerson();
     if (!ep) return;
     const name     = (document.getElementById('edit-name') as HTMLInputElement)?.value.trim();
     const initials = (document.getElementById('edit-initials') as HTMLInputElement)?.value.trim().toUpperCase();
     const email    = (document.getElementById('edit-email') as HTMLInputElement)?.value.trim().toLowerCase();
-    const status   = (document.getElementById('edit-status') as HTMLSelectElement)?.value as Person['status'];
+    const statusVal = (document.getElementById('edit-status') as HTMLSelectElement)?.value;
     const color    = this.color();
     if (!name || !initials || !email) return;
-    const updated = { ...ep, name, initials, status, color, email };
+
+    // Résolution du statut : absent → 'absent', disponible → 'ok' (reset catch aussi)
+    let status: Person['status'] = ep.status;
+    if (this.canEditStatus()) {
+      if (statusVal === 'absent') {
+        status = 'absent';
+      } else if (ep.status === 'absent' || ep.status === 'catch') {
+        status = 'ok';
+      }
+    }
+
+    const updated: Person = { ...ep, name, initials, status, color, email };
+    // Reset des champs d'absence si on remet en disponible
+    if (status === 'ok') {
+      updated.replacedBy = null;
+      updated.absentDate = null;
+      updated.catchupDate = null;
+      updated.promoted = null;
+    }
     if (!this.croissant.isAdmin()) delete (updated as any).email;
     this.croissant.updatePerson(updated);
     this.croissant.closeModals();

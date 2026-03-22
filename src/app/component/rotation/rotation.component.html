@@ -9,8 +9,8 @@
 					<div class="person-meta">
 						@if (person.status === 'absent') {
 							<div>⛔ Absent le {{person.absentDate ?? person.dateLabel}}{{ person.replacedBy ? ' — remplacé par ' + person.replacedBy : '' }}</div>
-							@if (person.replacedBy && person.absentDate !== person.dateLabel) {
-								<div>🗓 Rattrapage le {{person.dateLabel}}</div>
+							@if (person.catchupDate) {
+								<div>🗓 Rattrapage le {{person.catchupDate}}</div>
 							}
 						} @else if (person.status === 'catch' && person.absentDate) {
 							🗓 Prévu le {{person.dateLabel}} — rattrapage du {{person.absentDate}}

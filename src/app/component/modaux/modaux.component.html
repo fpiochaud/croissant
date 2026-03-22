@@ -42,10 +42,9 @@
 			<div class="field"><label>Initiales (2 lettres)</label><input type="text" id="edit-initials" maxlength="2" style="text-transform:uppercase"></div>
 			<div class="field"><label>Email</label><input type="email" id="edit-email" placeholder="sophie@example.com" required [attr.disabled]="!croissant.isAdmin() ? '' : null"></div>
 			<div class="field"><label>Statut</label>
-				<select id="edit-status">
-					<option value="ok">Disponible</option>
+				<select id="edit-status" [attr.disabled]="!canEditStatus() ? '' : null">
+					<option value="disponible">Disponible</option>
 					<option value="absent">Absent</option>
-					<option value="catch">Rattrapage dû</option>
 				</select>
 			</div>
 			<div class="field"><label>Couleur</label>
