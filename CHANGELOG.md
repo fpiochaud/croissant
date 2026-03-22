@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.5.0 — 2026-03-22
+
+- fix: remplacement affichage
+- feat: suppression des notif swap
+
 ## v1.4.2 — 2026-03-21
 
 - fix: correction en cas de remplacement.
