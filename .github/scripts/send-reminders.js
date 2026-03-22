@@ -113,6 +113,16 @@ function buildMessage(type, personName) {
 
 async function main() {
   const teamId = 'equipe-lundi';
+
+  // Anti-doublon : on ne veut qu'un seul envoi par type et par jour
+  const today = new Date().toISOString().split('T')[0]; // ex: "2026-03-22"
+  const sentRef = db.collection('teams').doc(teamId).collection('remindersSent').doc(`${type}-${today}`);
+  const sentSnap = await sentRef.get();
+  if (sentSnap.exists) {
+    console.log(`[${teamId}] Rappel "${type}" déjà envoyé aujourd'hui (${today}), abandon.`);
+    return;
+  }
+
   const person = await getNextPerson(teamId);
   if (!person) {
     console.log(`[${teamId}] Aucune personne dans la rotation.`);
@@ -122,6 +132,9 @@ async function main() {
   const { title, body } = buildMessage(type, person.name);
   console.log(`[${teamId}] Envoi : "${title}" — "${body}"`);
   await sendToTeam(teamId, type, title, body);
+
+  // Marque comme envoyé
+  await sentRef.set({ sentAt: admin.firestore.FieldValue.serverTimestamp(), type, personName: person.name });
 }
 
 main()
