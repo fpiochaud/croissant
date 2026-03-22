@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.8 — 2026-03-22
+
+- fix: correction notif
+
 ## v1.6.7 — 2026-03-22
 
 - fix: contenu de la notif
