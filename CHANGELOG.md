@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.1 — 2026-03-22
+
+- fix: notification en double
+
 ## v1.6.0 — 2026-03-22
 
 - fix: décalage des cron
