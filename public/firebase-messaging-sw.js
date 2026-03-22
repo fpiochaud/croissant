@@ -1,18 +1,17 @@
 // firebase-messaging-sw.js — Service Worker FCM (raw push handler)
 
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
+
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
-  const payload = event.data.json();
-  const title = payload.data?.msgTitle ?? payload.notification?.title ?? '🥐 Croissants du lundi';
-  const body  = payload.data?.msgBody  ?? payload.notification?.body  ?? '';
+  const raw = event.data.json();
 
+  // DEBUG — à supprimer après diagnostic
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon:  '/favicon.ico',
-      badge: '/favicon.ico',
-      data:  { url: payload.fcmOptions?.link ?? payload.webpush?.fcmOptions?.link ?? '/' },
+    self.registration.showNotification('DEBUG payload', {
+      body: JSON.stringify(raw),
     })
   );
 });
