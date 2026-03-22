@@ -39,10 +39,26 @@ async function getFilteredTokens(teamId, type) {
     if (data.email) prefsByEmail[data.email] = data.notifPrefs ?? {};
   });
 
-  // Garde uniquement les tokens des utilisateurs ayant la préférence activée
-  return allTokenDocs
-    .filter(d => !d.email || (prefsByEmail[d.email]?.[type] === true))
-    .map(d => d.token);
+  // Filtre par préférence
+  const eligible = allTokenDocs.filter(d => !d.email || (prefsByEmail[d.email]?.[type] === true));
+
+  // Déduplique par email : 1 seul token par utilisateur (le plus récent)
+  const byEmail = new Map();
+  for (const d of eligible) {
+    const key = d.email ?? d.token; // tokens sans email gardés tels quels
+    if (!byEmail.has(key)) {
+      byEmail.set(key, d);
+    } else {
+      const existing = byEmail.get(key);
+      const existingTs = existing.updatedAt?.toMillis?.() ?? 0;
+      const currentTs  = d.updatedAt?.toMillis?.() ?? 0;
+      if (currentTs > existingTs) byEmail.set(key, d);
+    }
+  }
+
+  const tokens = [...byEmail.values()].map(d => d.token);
+  console.log(`[${teamId}] ${tokens.length} token(s) éligible(s) (${allTokenDocs.length} total, ${eligible.length} après filtre préfs)`);
+  return tokens;
 }
 
 async function sendToTeam(teamId, type, title, body) {
