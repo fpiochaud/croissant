@@ -21,6 +21,7 @@ export interface Person {
   rank?: number;
   email?: string;
   replacedBy?: string | null;
+  absentDate?: string | null;
 }
 
 export interface AppState {
@@ -288,11 +289,18 @@ export class CroissantService {
   }
 
   setPersonAbsent(personId: string, replacedBy?: string) {
+    // La date d'absence = prochain lundi (session pour laquelle l'absence est déclarée)
+    const absentDateLabel = getNextMonday().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+
     this.state.update(s => ({
       ...s,
-      persons: s.persons.map(p => p.id === personId ? { ...p, status: 'absent', replacedBy: replacedBy ?? null } : p),
+      persons: s.persons.map(p => p.id === personId
+        ? { ...p, status: 'absent', replacedBy: replacedBy ?? null, absentDate: absentDateLabel }
+        : p),
     }));
-    updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), { status: 'absent', replacedBy: replacedBy ?? null });
+    updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), {
+      status: 'absent', replacedBy: replacedBy ?? null, absentDate: absentDateLabel,
+    });
   }
 
   // Quand l'absent est en tête de liste, on fait passer le remplaçant devant lui
