@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.10 — 2026-03-22
+
+- fix: affichage du message de notif
+
 ## v1.6.9 — 2026-03-22
 
 - fix: correction notification
