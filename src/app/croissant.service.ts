@@ -524,11 +524,8 @@ export class CroissantService {
         );
       }
 
-      onMessage(this.messaging!, (payload) => {
-        const title = payload.notification?.title ?? '🥐 Croissants du lundi';
-        const body  = payload.notification?.body  ?? '';
-        new Notification(title, { body, icon: '/favicon.ico' });
-      });
+      // onMessage intercepte les messages en premier plan — le service worker gère déjà l'affichage
+      onMessage(this.messaging!, () => {});
 
     } catch (err) {
       console.error('FCM init error:', err);

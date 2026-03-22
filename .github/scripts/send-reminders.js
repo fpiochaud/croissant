@@ -4,9 +4,10 @@
 
 const admin = require('firebase-admin');
 
-const type = process.argv[2];
+const type  = process.argv[2];
+const force = process.argv.includes('--force');
 if (!['eve', 'morning'].includes(type)) {
-  console.error('Usage: node send-reminders.js <eve|morning>');
+  console.error('Usage: node send-reminders.js <eve|morning> [--force]');
   process.exit(1);
 }
 
@@ -117,10 +118,14 @@ async function main() {
   // Anti-doublon : on ne veut qu'un seul envoi par type et par jour
   const today = new Date().toISOString().split('T')[0]; // ex: "2026-03-22"
   const sentRef = db.collection('teams').doc(teamId).collection('remindersSent').doc(`${type}-${today}`);
-  const sentSnap = await sentRef.get();
-  if (sentSnap.exists) {
-    console.log(`[${teamId}] Rappel "${type}" déjà envoyé aujourd'hui (${today}), abandon.`);
-    return;
+  if (!force) {
+    const sentSnap = await sentRef.get();
+    if (sentSnap.exists) {
+      console.log(`[${teamId}] Rappel "${type}" déjà envoyé aujourd'hui (${today}), abandon. (utiliser --force pour forcer)`);
+      return;
+    }
+  } else {
+    console.log(`[${teamId}] Mode --force : envoi forcé même si déjà envoyé.`);
   }
 
   const person = await getNextPerson(teamId);
