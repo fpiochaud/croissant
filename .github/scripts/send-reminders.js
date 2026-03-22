@@ -43,17 +43,24 @@ async function getFilteredTokens(teamId, type) {
   // Filtre par préférence
   const eligible = allTokenDocs.filter(d => !d.email || (prefsByEmail[d.email]?.[type] === true));
 
+  // Log détaillé pour diagnostic
+  eligible.forEach(d => console.log(`  token: ...${d.token?.slice(-10)}  email: ${d.email ?? '(null)'}  updatedAt: ${d.updatedAt?.toDate?.()}`));
+
   // Déduplique par email : 1 seul token par utilisateur (le plus récent)
   const byEmail = new Map();
   for (const d of eligible) {
-    const key = d.email ?? d.token; // tokens sans email gardés tels quels
-    if (!byEmail.has(key)) {
-      byEmail.set(key, d);
+    const key = d.email || null; // null si email absent/vide
+    if (key === null) {
+      // Pas d'email : on garde le plus récent parmi les tokens sans email
+      const existing = byEmail.get('__no_email__');
+      const existingTs = existing?.updatedAt?.toMillis?.() ?? 0;
+      const currentTs  = d.updatedAt?.toMillis?.() ?? 0;
+      if (!existing || currentTs > existingTs) byEmail.set('__no_email__', d);
     } else {
       const existing = byEmail.get(key);
-      const existingTs = existing.updatedAt?.toMillis?.() ?? 0;
+      const existingTs = existing?.updatedAt?.toMillis?.() ?? 0;
       const currentTs  = d.updatedAt?.toMillis?.() ?? 0;
-      if (currentTs > existingTs) byEmail.set(key, d);
+      if (!existing || currentTs > existingTs) byEmail.set(key, d);
     }
   }
 
