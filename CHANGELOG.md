@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.9 — 2026-03-22
+
+- fix: correction notification
+
 ## v1.6.8 — 2026-03-22
 
 - fix: correction notif
