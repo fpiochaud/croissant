@@ -78,7 +78,7 @@ async function sendToTeam(teamId, type, title, body) {
 
   const response = await fcm.sendEachForMulticast({
     tokens,
-    data: { title, body },
+    data: { msgTitle: title, msgBody: body },
     webpush: {
       fcmOptions: { link: '/' },
     },

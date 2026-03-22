@@ -12,8 +12,8 @@ const messaging = firebase.messaging();
 
 // Déclenché quand l'app est fermée ou en arrière-plan
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.data?.title ?? '🥐 Croissants du lundi';
-  const body  = payload.data?.body  ?? '';
+  const title = payload.data?.msgTitle ?? '🥐 Croissants du lundi';
+  const body  = payload.data?.msgBody  ?? '';
   self.registration.showNotification(title, {
     body,
     icon:  '/favicon.ico',
