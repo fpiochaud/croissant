@@ -42,7 +42,11 @@ export class RotationComponent {
   }
 
   moveToTop(person: Person) {
-    this.croissant.movePersonToTop(person.id);
+    if (new Date().getDay() === 1) {
+      this.croissant.promoteBlocked.set(true);
+    } else {
+      this.croissant.personToPromote.set(person);
+    }
   }
 
   isCurrentUser(person: Person): boolean {

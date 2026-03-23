@@ -12,7 +12,9 @@ export class ModauxComponent {
   showAddModal = this.croissant.showAddModal;
   showEditModal = this.croissant.showEditModal;
   editPerson = this.croissant.editPerson;
-  personToDelete = this.croissant.personToDelete;
+  personToDelete  = this.croissant.personToDelete;
+  personToPromote = this.croissant.personToPromote;
+  promoteBlocked  = this.croissant.promoteBlocked;
   color = signal('c1');
 
   constructor() {
@@ -130,6 +132,21 @@ export class ModauxComponent {
 
   cancelDelete() {
     this.croissant.personToDelete.set(null);
+  }
+
+  confirmPromote() {
+    const person = this.personToPromote();
+    if (!person) return;
+    this.croissant.movePersonToTop(person.id);
+    this.croissant.personToPromote.set(null);
+  }
+
+  cancelPromote() {
+    this.croissant.personToPromote.set(null);
+  }
+
+  closePromoteBlocked() {
+    this.croissant.promoteBlocked.set(false);
   }
 
   confirmManualSwap() {
