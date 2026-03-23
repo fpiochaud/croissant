@@ -1,44 +1,8 @@
 # Changelog
 
-## v1.6.10 — 2026-03-22
-
-- fix: affichage du message de notif
-
 ## v1.6.9 — 2026-03-22
 
 - fix: correction notification
-
-## v1.6.8 — 2026-03-22
-
-- fix: correction notif
-
-## v1.6.7 — 2026-03-22
-
-- fix: contenu de la notif
-
-## v1.6.6 — 2026-03-22
-
-- fix: correction doublon notification
-
-## v1.6.5 — 2026-03-22
-
-- fix: correction doublon notification
-
-## v1.6.4 — 2026-03-22
-
-- fix: correction script reminder
-
-## v1.6.3 — 2026-03-22
-
-- fix: correction notif
-
-## v1.6.2 — 2026-03-22
-
-- fix: correction doublon
-
-## v1.6.1 — 2026-03-22
-
-- fix: notification en double
 
 ## v1.6.0 — 2026-03-22
 
