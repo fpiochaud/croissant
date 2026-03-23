@@ -85,7 +85,7 @@ export class RemplacementComponent {
     this.reset();
   }
 
-  private reset() {
+  reset() {
     this.absentId.set('');
     this.swapPreview.set(null);
     this.manualMode.set(false);
