@@ -77,6 +77,21 @@
 	</div>
 </div>
 
+<!-- MODAL CONFIRMATION SUPPRESSION -->
+<div class="modal-overlay" [class.open]="personToDelete() !== null" (click)="cancelDelete()" style="z-index:200">
+	<div class="modal" (click)="$event.stopPropagation()">
+		<div class="modal-handle"></div>
+		<div class="modal-title" style="color:var(--red);">Supprimer le membre</div>
+		<div class="modal-body">
+			<p style="text-align:center;margin-bottom:16px;">Supprimer <strong>{{personToDelete()?.name}}</strong> ?<br><span style="font-size:12px;color:var(--text-hint);">Cette action est irréversible.</span></p>
+			<div style="display:flex;gap:8px;">
+				<button class="btn btn-outline" (click)="cancelDelete()" style="flex:1;">Annuler</button>
+				<button class="btn btn-primary" (click)="confirmDelete()" style="flex:1;background:var(--red);border-color:var(--red);">Supprimer</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <!-- MODAL REMPLAÇANT MANUEL -->
 <div class="modal-overlay" id="manual-modal" (click)="closeModalOutside($event)" style="display:none">
 	<div class="modal">

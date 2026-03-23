@@ -90,6 +90,7 @@ export class CroissantService {
   showAddModal  = signal(false);
   showEditModal = signal(false);
   editPerson    = signal<Person | null>(null);
+  personToDelete = signal<Person | null>(null);
   fcmStatus     = signal<'idle' | 'pending' | 'granted' | 'denied'>('idle');
 
   // Auth

@@ -12,6 +12,7 @@ export class ModauxComponent {
   showAddModal = this.croissant.showAddModal;
   showEditModal = this.croissant.showEditModal;
   editPerson = this.croissant.editPerson;
+  personToDelete = this.croissant.personToDelete;
   color = signal('c1');
 
   constructor() {
@@ -47,6 +48,7 @@ export class ModauxComponent {
 
   closeModalOutside(event: MouseEvent) {
     if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
+      this.croissant.personToDelete.set(null);
       this.croissant.closeModals();
     }
   }
@@ -90,7 +92,6 @@ export class ModauxComponent {
     const color    = this.color();
     if (!name || !initials || !email) return;
 
-    // Résolution du statut : absent → 'absent', disponible → 'ok' (reset catch aussi)
     let status: Person['status'] = ep.status;
     if (this.canEditStatus()) {
       if (statusVal === 'absent') {
@@ -101,7 +102,6 @@ export class ModauxComponent {
     }
 
     const updated: Person = { ...ep, name, initials, status, color, email };
-    // Reset des champs d'absence si on remet en disponible
     if (status === 'ok') {
       updated.replacedBy = null;
       updated.absentDate = null;
@@ -116,11 +116,20 @@ export class ModauxComponent {
 
   deletePerson() {
     const ep = this.editPerson();
-    if (ep) {
-      this.croissant.deletePerson(ep);
-      this.croissant.closeModals();
-      this.croissant.editPerson.set(null);
-    }
+    if (ep) this.croissant.personToDelete.set(ep);
+  }
+
+  confirmDelete() {
+    const person = this.personToDelete();
+    if (!person) return;
+    this.croissant.deletePerson(person);
+    this.croissant.personToDelete.set(null);
+    this.croissant.closeModals();
+    this.croissant.editPerson.set(null);
+  }
+
+  cancelDelete() {
+    this.croissant.personToDelete.set(null);
   }
 
   confirmManualSwap() {

@@ -38,7 +38,7 @@ export class RotationComponent {
   }
 
   deletePerson(person: Person) {
-    this.croissant.deletePerson(person);
+    this.croissant.personToDelete.set(person);
   }
 
   moveToTop(person: Person) {
