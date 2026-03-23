@@ -1,6 +1,6 @@
 import { Component, computed, signal, HostListener, inject } from '@angular/core';
 import { NgIf, NgClass } from '@angular/common';
-import { CroissantService, getNextMonday } from '../../croissant.service';
+import { CroissantService, getNextCroissantDay } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-header',
@@ -19,7 +19,14 @@ export class HeaderComponent {
   nextDate   = computed(() => {
     const person = this.nextPerson();
     if (!person) return '—';
-    return getNextMonday().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return getNextCroissantDay(0).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  });
+
+  offsetLabel = computed(() => {
+    const offset = this.croissant.state().sessionOffset;
+    if (offset === 0) return null;
+    const date = getNextCroissantDay(offset).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return `Férié ou chômé — décalé le ${date}`;
   });
   isNextUser = computed(() => this.nextPerson()?.email === this.croissant.currentUser()?.email);
   showDropdown = signal(false);

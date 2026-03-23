@@ -34,34 +34,40 @@ export interface AppState {
   teamName: string;
   notifications: any[];
   currentIndex: number;
+  sessionOffset: number; // 0=lundi, 1=mardi, 2=mercredi
 }
 
 function encodeEmail(email: string): string {
   return email.toLowerCase().replace('@', '_at_').replace(/\./g, '_dot_');
 }
 
-// Retourne la date du lundi le plus récent qui est PASSÉ (si aujourd'hui est lundi, c'est le lundi d'avant)
-function getMostRecentPastMonday(): string {
+// Retourne la date du prochain jour de croissants (lundi + offset), aujourd'hui si on y est
+export function getNextCroissantDay(offset: number = 0): Date {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const day = today.getDay(); // 0=dim, 1=lun, ..., 6=sam
-  const daysBack = day === 0 ? 6 : day === 1 ? 7 : day - 1;
-  const lastMonday = new Date(today);
-  lastMonday.setDate(today.getDate() - daysBack);
-  return lastMonday.toISOString().split('T')[0];
-}
-
-// Retourne la date du prochain lundi (aujourd'hui si on est lundi)
-export function getNextMonday(): Date {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const targetDow = 1 + offset; // 1=lun, 2=mar, 3=mer
   const day = today.getDay();
-  if (day === 1) return today;
-  const daysUntil = day === 0 ? 1 : 8 - day;
+  if (day === targetDow) return today;
+  const daysUntil = targetDow > day ? targetDow - day : 7 - day + targetDow;
   const next = new Date(today);
   next.setDate(today.getDate() + daysUntil);
   return next;
 }
+
+// Retourne la date du jour de croissants le plus récent PASSÉ
+function getMostRecentPastCroissantDay(offset: number = 0): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const targetDow = 1 + offset;
+  const day = today.getDay();
+  const daysBack = day === targetDow ? 7 : (day > targetDow ? day - targetDow : 7 - targetDow + day);
+  const last = new Date(today);
+  last.setDate(today.getDate() - daysBack);
+  return last.toISOString().split('T')[0];
+}
+
+// Compatibilité
+export function getNextMonday(): Date { return getNextCroissantDay(0); }
 
 @Injectable({ providedIn: 'root' })
 export class CroissantService {
@@ -82,6 +88,7 @@ export class CroissantService {
     teamName: '',
     notifications: [],
     currentIndex: 0,
+    sessionOffset: 0,
   });
 
   darkMode    = signal<boolean>(localStorage.getItem('darkMode') === 'true');
@@ -213,9 +220,10 @@ export class CroissantService {
         const d = snap.data();
         this.state.update(s => ({
           ...s,
-          teamName:     d['teamName']     ?? s.teamName,
-          currentIndex: d['currentIndex'] ?? s.currentIndex,
-          rules:        d['rules']        ?? s.rules,
+          teamName:      d['teamName']      ?? s.teamName,
+          currentIndex:  d['currentIndex']  ?? s.currentIndex,
+          rules:         d['rules']         ?? s.rules,
+          sessionOffset: d['sessionOffset'] ?? 0,
         }));
       } else {
         setDoc(teamDoc, {
@@ -279,6 +287,11 @@ export class CroissantService {
     if (uid) updateDoc(doc(this.db, 'users', uid), { notifPrefs });
   }
 
+  setSessionOffset(offset: number) {
+    this.state.update(s => ({ ...s, sessionOffset: offset }));
+    updateDoc(doc(this.db, 'teams', this.teamId), { sessionOffset: offset });
+  }
+
   setRule(rule: keyof AppState['rules'], value: boolean) {
     const rules = { ...this.state().rules, [rule]: value };
     this.state.update(s => ({ ...s, rules }));
@@ -297,7 +310,7 @@ export class CroissantService {
     // La date d'absence = date prévue de la personne selon son rang actuel
     const persons = this.state().persons;
     const idx = persons.findIndex(p => p.id === personId);
-    const absentDate = new Date(getNextMonday());
+    const absentDate = new Date(getNextCroissantDay(this.state().sessionOffset));
     absentDate.setDate(absentDate.getDate() + idx * 7);
     const absentDateLabel = absentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
@@ -349,9 +362,10 @@ export class CroissantService {
   private async checkAndRotate(persons: Person[]) {
     const teamSnap = await getDoc(doc(this.db, 'teams', this.teamId));
     const lastRotationDate: string | null = teamSnap.data()?.['lastRotationDate'] ?? null;
-    const mostRecentPastMonday = getMostRecentPastMonday();
+    const offset: number = teamSnap.data()?.['sessionOffset'] ?? 0;
+    const mostRecentPastCroissantDay = getMostRecentPastCroissantDay(offset);
 
-    if (lastRotationDate && lastRotationDate >= mostRecentPastMonday) return;
+    if (lastRotationDate && lastRotationDate >= mostRecentPastCroissantDay) return;
 
     // Déplace le premier en bas de liste
     const updated = [...persons];
@@ -368,7 +382,7 @@ export class CroissantService {
       }
       batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), update);
     });
-    batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: mostRecentPastMonday });
+    batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: mostRecentPastCroissantDay, sessionOffset: 0 });
     await batch.commit();
 
     // Purge de l'historique : on ne conserve que les 2 derniers mois

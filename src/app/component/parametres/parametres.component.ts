@@ -36,6 +36,13 @@ export class ParametresComponent {
     this.croissant.openTab(tab);
   }
 
+  sessionOffset = () => this.croissant.state().sessionOffset;
+
+  setSessionOffset(event: Event) {
+    const value = parseInt((event.target as HTMLSelectElement).value, 10);
+    this.croissant.setSessionOffset(value);
+  }
+
   logout() {
     this.croissant.logout();
   }

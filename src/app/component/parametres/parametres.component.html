@@ -8,6 +8,23 @@
 			<div class="settings-row"><span class="settings-icon">🔥</span><span class="settings-label">Statut Firestore</span><span class="settings-value">{{ firestoreStatus() }}</span></div>
 			<div class="settings-row"><span class="settings-icon">🔔</span><span class="settings-label">Token FCM enregistré</span><span class="settings-value">{{ fcmLabel() }}</span></div>
 		</div>
+		@if (croissant.isAdmin()) {
+			<div class="sec-label">Jour des croissants</div>
+			<div class="settings-section">
+				<div class="settings-row">
+					<span class="settings-icon">📅</span>
+					<span class="settings-label">Prochaine session</span>
+					<select [value]="sessionOffset()" (change)="setSessionOffset($event)" style="font-size:13px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);">
+						<option value="0">+0 — Lundi (par défaut)</option>
+						<option value="1">+1 — Mardi</option>
+						<option value="2">+2 — Mercredi</option>
+					</select>
+				</div>
+				@if (sessionOffset() > 0) {
+					<div style="font-size:12px;color:var(--orange);padding:6px 12px 10px;">⚠️ Session décalée — se remet à Lundi après la rotation.</div>
+				}
+			</div>
+		}
 		<div class="sec-label">Installer l'application</div>
 		<div class="install-card">
 			<div class="install-platform">

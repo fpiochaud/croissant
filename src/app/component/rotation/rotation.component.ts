@@ -1,6 +1,6 @@
 import { Component, computed } from '@angular/core';
 import { NgFor, NgClass } from '@angular/common';
-import { CroissantService, Person, getNextMonday } from '../../croissant.service';
+import { CroissantService, Person, getNextCroissantDay } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-rotation',
@@ -12,7 +12,7 @@ export class RotationComponent {
   persons = computed(() => this.croissant.state().persons);
 
   personsWithDates = computed(() => {
-    const nextMonday = getNextMonday();
+    const nextMonday = getNextCroissantDay(this.croissant.state().sessionOffset);
     return this.persons().map((person, index) => {
       const date = new Date(nextMonday);
       date.setDate(date.getDate() + index * 7);
@@ -42,7 +42,8 @@ export class RotationComponent {
   }
 
   moveToTop(person: Person) {
-    if (new Date().getDay() === 1) {
+    const offset = this.croissant.state().sessionOffset;
+    if (new Date().getDay() === 1 + offset) {
       this.croissant.promoteBlocked.set(true);
     } else {
       this.croissant.personToPromote.set(person);

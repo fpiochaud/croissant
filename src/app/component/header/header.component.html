@@ -36,6 +36,9 @@
 			<div class="next-label">Prochain tour</div>
 			<div class="next-name">{{ nextName() }}</div>
 			<div class="next-date">{{ nextDate() }}</div>
+			@if (offsetLabel()) {
+				<div class="next-date" style="color:var(--orange);font-size:11px;margin-top:2px;">⚠️ {{ offsetLabel() }}</div>
+			}
 		</div>
 		<div class="next-badge" *ngIf="isNextUser()">C'est vous !</div>
 	</div>
