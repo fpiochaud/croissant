@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.7.0 — 2026-03-23
+
+- feat: décalage du jour des croissants
+- fix: ajouter d'un bouton annuler pour le remplacement
+- fix: changement des couleurs
+- feat: popup de confirmation pour passer en premier + blocage le jour des craoissants
+- feat: popup de confirmation pour la suppression.
+
 ## v1.6.9 — 2026-03-22
 
 - fix: correction notification
