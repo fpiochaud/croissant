@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.7.1 — 2026-03-24
+
+- fix: correction du décalage pour les suivant de la liste
+- fix: correction du décalage férié / pont
+
 ## v1.7.0 — 2026-03-23
 
 - feat: décalage du jour des croissants
