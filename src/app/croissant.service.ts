@@ -41,16 +41,15 @@ function encodeEmail(email: string): string {
   return email.toLowerCase().replace('@', '_at_').replace(/\./g, '_dot_');
 }
 
-// Retourne la date du prochain jour de croissants (lundi + offset), aujourd'hui si on y est
+// Retourne la date du prochain lundi (ou aujourd'hui si lundi) + offset jours
 export function getNextCroissantDay(offset: number = 0): Date {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const targetDow = 1 + offset; // 1=lun, 2=mar, 3=mer
   const day = today.getDay();
-  if (day === targetDow) return today;
-  const daysUntil = targetDow > day ? targetDow - day : 7 - day + targetDow;
+  // Nombre de jours jusqu'au prochain lundi (0 si on est lundi)
+  const daysUntilMonday = day === 1 ? 0 : (day === 0 ? 1 : 8 - day);
   const next = new Date(today);
-  next.setDate(today.getDate() + daysUntil);
+  next.setDate(today.getDate() + daysUntilMonday + offset);
   return next;
 }
 
