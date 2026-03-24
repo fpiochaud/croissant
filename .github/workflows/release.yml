@@ -28,6 +28,12 @@ jobs:
       - name: Installer les dépendances
         run: npm install
 
+      - name: Incrémenter la version et mettre à jour CHANGELOG
+        id: version
+        run: |
+          NEW_VERSION=$(node .github/scripts/bump-version.js)
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
       - name: Générer environment.prod.ts
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
@@ -86,12 +92,6 @@ jobs:
         run: npx firebase-tools deploy --only hosting:croissant-lundi --project croissant-593e5 --non-interactive
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      - name: Incrémenter la version et mettre à jour CHANGELOG
-        id: version
-        run: |
-          NEW_VERSION=$(node .github/scripts/bump-version.js)
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit, tag et push
         if: steps.version.outputs.version != 'none'
