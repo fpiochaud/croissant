@@ -12,11 +12,13 @@ export class RotationComponent {
   persons = computed(() => this.croissant.state().persons);
 
   personsWithDates = computed(() => {
-    const nextMonday = getNextCroissantDay(this.croissant.state().sessionOffset);
+    const offset = this.croissant.state().sessionOffset;
+    const nextMonday = getNextCroissantDay(0);
     return this.persons().map((person, index) => {
       const date = new Date(nextMonday);
-      date.setDate(date.getDate() + index * 7);
-      const label = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      // Le décalage ne s'applique qu'à la première session ; les suivantes restent le lundi
+      date.setDate(date.getDate() + index * 7 + (index === 0 ? offset : 0));
+      const label = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
       return { ...person, dateLabel: label };
     });
   });
