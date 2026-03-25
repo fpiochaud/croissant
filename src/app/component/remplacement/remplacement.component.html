@@ -37,10 +37,12 @@
 				}
 			</div>
 		</div>
-		<div class="sec-label">Règles de remplacement</div>
-			<div class="rules-card">
+		@if (croissant.isAdmin()) {
+			<div class="sec-label">Règles de remplacement</div>
+			<div class="rules-card admin-only">
 				<div class="rule-row"><div><div class="rule-label">Remplacement automatique</div><div class="rule-desc">Par le suivant dans la liste</div></div><button class="toggle" [class.on]="rules().auto" id="toggle-auto" (click)="toggleRule('auto')"></button></div>
 				<div class="rule-row"><div><div class="rule-label">Rattrapage automatique</div><div class="rule-desc">L'absent rattrape à son retour</div></div><button class="toggle" [class.on]="rules().catch" id="toggle-catch" (click)="toggleRule('catch')"></button></div>
-				</div>
+			</div>
+		}
 	</div>
 </div>

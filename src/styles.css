@@ -115,6 +115,7 @@ select:focus { border-color: var(--primary); }
 
 /* RULES */
 .rules-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.rules-card.admin-only { border-color: var(--orange); }
 .rule-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
 .rule-row:last-child { border-bottom: none; }
 .rule-label { font-size: 14px; font-weight: 500; color: var(--text); }
@@ -142,6 +143,7 @@ select:focus { border-color: var(--primary); }
 
 /* SETTINGS */
 .settings-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+.settings-section.admin-only { border-color: var(--orange); }
 .settings-row { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
 .settings-row:last-child { border-bottom: none; }
 .settings-icon { font-size: 18px; width: 26px; text-align: center; }
