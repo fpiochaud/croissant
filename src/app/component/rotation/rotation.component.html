@@ -24,7 +24,7 @@
 						<button class="card-btn card-btn-top" title="Passer en premier" (click)="$event.stopPropagation(); moveToTop(person)">⬆️</button>
 					}
 					@if (canEdit(person)) {
-						<button class="card-btn card-btn-edit" (click)="$event.stopPropagation(); editPerson(person)">✏️</button>
+						<button class="card-btn card-btn-edit" [class.admin-only]="!isCurrentUser(person)" (click)="$event.stopPropagation(); editPerson(person)">✏️</button>
 					}
 					@if (croissant.isAdmin()) {
 						<button class="card-btn card-btn-delete" (click)="$event.stopPropagation(); deletePerson(person)">🗑️</button>

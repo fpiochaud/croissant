@@ -96,6 +96,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .card-btn-edit:hover { background: var(--bg); }
 .card-btn-delete { border-color: var(--red-bg); }
 .card-btn-delete:hover { background: var(--red-bg); }
+.card-btn-edit.admin-only { border-color: var(--orange); }
+.card-btn-edit.admin-only:hover { background: var(--orange-bg); }
 .card-btn-top { border-color: var(--blue-bg); }
 .card-btn-top:hover { background: var(--blue-bg); }
 .btn-firebase { background: var(--primary); color: #fff; margin-top: 8px; }
