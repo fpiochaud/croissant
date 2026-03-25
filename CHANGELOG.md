@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.0 — 2026-03-25
+
+- feat: mise en evidence des option admin
+- feat: masquer les option admin et les mettre en évidence
+- fix: correction remplacement bas dans la liste
+
 ## v1.7.1 — 2026-03-24
 
 - fix: correction du décalage pour les suivant de la liste
