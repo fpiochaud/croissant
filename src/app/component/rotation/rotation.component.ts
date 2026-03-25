@@ -14,10 +14,21 @@ export class RotationComponent {
   personsWithDates = computed(() => {
     const offset = this.croissant.state().sessionOffset;
     const nextMonday = getNextCroissantDay(0);
-    return this.persons().map((person, index) => {
-      const date = new Date(nextMonday);
-      // Le décalage ne s'applique qu'à la première session ; les suivantes restent le lundi
-      date.setDate(date.getDate() + index * 7 + (index === 0 ? offset : 0));
+    const persons = this.persons();
+
+    // Calcul des dates brutes (un lundi par semaine, + offset uniquement pour le 1er)
+    const rawDates = persons.map((_, i) => {
+      const d = new Date(nextMonday);
+      d.setDate(d.getDate() + i * 7 + (i === 0 ? offset : 0));
+      return d;
+    });
+
+    return persons.map((person, index) => {
+      let date = rawDates[index];
+      // La personne qui suit un absent le remplace : afficher la date du slot de l'absent
+      if (index > 0 && persons[index - 1].status === 'absent') {
+        date = rawDates[index - 1];
+      }
       const label = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
       return { ...person, dateLabel: label };
     });

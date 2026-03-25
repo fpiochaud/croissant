@@ -12,7 +12,12 @@ export class HeaderComponent {
   croissant = inject(CroissantService);
 
   teamName   = computed(() => this.croissant.state().teamName);
-  nextPerson = computed(() => this.croissant.state().persons[0] ?? null);
+  nextPerson = computed(() => {
+    const persons = this.croissant.state().persons;
+    // Si le premier est absent, afficher son remplaçant (le suivant)
+    if (persons[0]?.status === 'absent') return persons[1] ?? null;
+    return persons[0] ?? null;
+  });
   nextName   = computed(() => this.nextPerson()?.name ?? '—');
   nextInitials = computed(() => this.nextPerson()?.initials ?? '?');
   nextColor  = computed(() => this.nextPerson()?.color ?? '');
