@@ -1,129 +1,197 @@
 # 🥐 Croissants du lundi
 
-PWA de gestion du planning de croissants pour votre équipe.
-Notifications push via Firebase Cloud Messaging.
+PWA Angular de gestion du planning de croissants d'équipe. Chaque semaine, un membre apporte les croissants selon un ordre de rotation. L'application gère la liste des membres, les absences et remplacements, l'historique, et envoie des notifications push la veille et le matin du jour J.
+
+> Pour une description détaillée du fonctionnement, des rôles et du modèle de données, voir la [documentation complète](docs/fonctionnement.md).
 
 ## Stack
 
-- HTML / CSS / JS vanilla (zéro framework, zéro bundler)
-- Firebase Firestore (état partagé temps réel)
-- Firebase Cloud Messaging (notifications push)
-- GitHub Pages (hébergement)
+- **Angular 21** — composants standalone, Signals
+- **Firebase Firestore** — état partagé temps réel
+- **Firebase Authentication** — connexion email/mot de passe
+- **Firebase Cloud Messaging** — notifications push
+- **Firebase Hosting** — hébergement de la PWA
+- **GitHub Actions** — CI/CD, déploiement automatique, rappels planifiés
 
-## Fichiers
+---
 
-```
-├── index.html        # PWA principale
-├── firebase-sw.js    # Service Worker FCM
-├── firestore.rules   # Règles de sécurité Firestore
-└── README.md
-```
+## Lancer en local
 
-## Installation
-
-### 1. Cloner le repo
+### 1. Prérequis
 
 ```bash
-git clone https://github.com/VOTRE_PSEUDO/croissants-app.git
-cd croissants-app
+node >= 20
+npm >= 11
 ```
 
-### 2. Configurer Firebase
+### 2. Cloner et installer
 
-1. Créer un projet sur [console.firebase.google.com](https://console.firebase.google.com)
-2. Activer **Firestore Database** et **Cloud Messaging**
-3. Récupérer les clés SDK : Console → Paramètres projet → Vos applications
-4. Remplacer les `YOUR_*` dans `index.html` ET dans `firebase-sw.js`
-5. Récupérer la clé **VAPID** : Cloud Messaging → Certificats push web
+```bash
+git clone <url-du-repo>
+cd croissant
+npm install
+cd .github/scripts && npm install && cd ../..
+```
 
-```js
-// Dans index.html et firebase-sw.js
-const FIREBASE_CONFIG = {
-  apiKey:            "VOTRE_API_KEY",
-  authDomain:        "VOTRE_PROJECT_ID.firebaseapp.com",
-  projectId:         "VOTRE_PROJECT_ID",
-  storageBucket:     "VOTRE_PROJECT_ID.appspot.com",
-  messagingSenderId: "VOTRE_SENDER_ID",
-  appId:             "VOTRE_APP_ID"
+### 3. Configurer Firebase (local)
+
+Copier le template et remplir avec vos identifiants Firebase :
+
+```bash
+cp public/firebase-config.example.js public/firebase-config.js
+```
+
+Éditer `public/firebase-config.js` avec vos valeurs (voir section [Variables](#variables-et-où-les-trouver)).
+
+Éditer `src/environments/environment.local.ts` avec les mêmes valeurs :
+
+```ts
+export const environment = {
+  production: false,
+  teamId: 'equipe-dev',       // ID du document équipe dans Firestore
+  firebase: {
+    apiKey:            'VOTRE_API_KEY',
+    authDomain:        'VOTRE_PROJECT_ID.firebaseapp.com',
+    projectId:         'VOTRE_PROJECT_ID',
+    storageBucket:     'VOTRE_PROJECT_ID.firebasestorage.app',
+    messagingSenderId: 'VOTRE_MESSAGING_SENDER_ID',
+    appId:             'VOTRE_APP_ID',
+  },
+  vapidKey: 'VOTRE_VAPID_KEY',
 };
-const VAPID_KEY = "VOTRE_VAPID_PUBLIC_KEY";
 ```
 
-### 3. Déployer les règles Firestore
+### 4. Démarrer
+
+```bash
+npm start
+```
+
+L'app tourne sur `http://localhost:4200` avec la configuration `local` (pointe sur `environment.local.ts`).
+
+---
+
+## Déployer sur Firebase Hosting
+
+### 1. Installer Firebase CLI
 
 ```bash
 npm install -g firebase-tools
 firebase login
-firebase init firestore   # choisir votre projet
-firebase deploy --only firestore:rules
 ```
 
-### 4. Activer GitHub Pages
-
-Settings → Pages → Branch: `main` / `/ (root)` → Save
-
-L'app sera disponible sur : `https://VOTRE_PSEUDO.github.io/croissants-app/`
-
-### 5. Autoriser le domaine dans Firebase
-
-Console Firebase → Authentication → Domaines autorisés → Ajouter `VOTRE_PSEUDO.github.io`
-
-## Utilisation
-
-1. Ouvrir l'URL sur mobile
-2. Installer l'app : iOS (Safari → Partager → Sur l'écran d'accueil) / Android (Menu → Ajouter à l'écran d'accueil)
-3. Chaque membre de l'équipe doit ouvrir l'app et cliquer **"Activer les notifications"**
-4. Lors d'un remplacement, tous les membres reçoivent un push automatiquement
-
-## Cloud Function (notifications push)
-
-Pour envoyer les pushs aux collègues, déployez cette Cloud Function :
+### 2. Déployer manuellement
 
 ```bash
-firebase init functions   # choisir Node.js
+npm run build
+npx firebase-tools deploy --only hosting --project VOTRE_PROJECT_ID
 ```
 
-```js
-// functions/index.js
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-const { initializeApp }     = require("firebase-admin/app");
-const { getFirestore }      = require("firebase-admin/firestore");
-const { getMessaging }      = require("firebase-admin/messaging");
+### 3. Déploiement automatique via GitHub Actions
 
-initializeApp();
+Le workflow `release.yml` se déclenche à chaque push sur `main` :
+- Bumpe la version (semantic versioning basé sur les préfixes de commit : `feat:` → mineur, `fix:` → patch)
+- Met à jour `CHANGELOG.md` et `src/version.ts`
+- Build et déploie sur Firebase Hosting
+- Crée un tag git et une GitHub Release
 
-exports.onNewNotification = onDocumentCreated(
-  "teams/{teamId}/notifications/{notifId}",
-  async (event) => {
-    const { text } = event.data.data();
-    const teamId   = event.params.teamId;
-    const db       = getFirestore();
+Il nécessite les secrets GitHub suivants (voir section [Variables](#variables-et-où-les-trouver)) :
 
-    const subs = await db.collection("subscriptions")
-      .where("teamId", "==", teamId).get();
-    const tokens = subs.docs.map(d => d.data().token).filter(Boolean);
+| Secret GitHub | Description |
+|---|---|
+| `FIREBASE_API_KEY` | Clé API Firebase |
+| `FIREBASE_AUTH_DOMAIN` | Domaine auth Firebase |
+| `FIREBASE_PROJECT_ID` | ID du projet Firebase |
+| `FIREBASE_STORAGE_BUCKET` | Bucket Storage Firebase |
+| `FIREBASE_MESSAGING_SENDER_ID` | Sender ID FCM |
+| `FIREBASE_APP_ID` | App ID Firebase |
+| `FIREBASE_VAPID_KEY` | Clé VAPID pour les notifications push |
+| `FIREBASE_SERVICE_ACCOUNT` | JSON du compte de service Firebase (pour les scripts Node.js) |
+| `FIREBASE_TOKEN` | Token CLI Firebase (pour le déploiement) |
 
-    if (!tokens.length) return;
+---
 
-    await getMessaging().sendEachForMulticast({
-      tokens,
-      notification: { title: "🥐 Croissants", body: text },
-      webpush: {
-        notification: { icon: "/icon-192.png", badge: "/icon-72.png" }
-      }
-    });
-  }
-);
+## Rappels automatiques
+
+Deux workflows GitHub Actions envoient des notifications push à l'équipe chaque dimanche :
+
+| Workflow | Heure (Noumea UTC+11) | Action |
+|---|---|---|
+| `reminder-eve.yml` | Dimanche 18h00 | Rappel la veille + suppression des comptes en attente |
+| `reminder-morning.yml` | Lundi 06h25 | Rappel le matin du jour J |
+
+Ils peuvent aussi être déclenchés manuellement depuis l'onglet **Actions** de GitHub avec une option `--force` pour ignorer l'anti-doublon.
+
+---
+
+## Variables et où les trouver
+
+### Variables Firebase (console web)
+
+Toutes accessibles dans la [Console Firebase](https://console.firebase.google.com) → votre projet → ⚙️ Paramètres du projet → Vos applications → SDK Firebase.
+
+| Variable | Où la trouver |
+|---|---|
+| `FIREBASE_API_KEY` | Console Firebase → Paramètres projet → Vos applications → `apiKey` |
+| `FIREBASE_AUTH_DOMAIN` | Console Firebase → Paramètres projet → Vos applications → `authDomain` |
+| `FIREBASE_PROJECT_ID` | Console Firebase → Paramètres projet → `ID du projet` |
+| `FIREBASE_STORAGE_BUCKET` | Console Firebase → Paramètres projet → Vos applications → `storageBucket` |
+| `FIREBASE_MESSAGING_SENDER_ID` | Console Firebase → Paramètres projet → Vos applications → `messagingSenderId` |
+| `FIREBASE_APP_ID` | Console Firebase → Paramètres projet → Vos applications → `appId` |
+| `FIREBASE_VAPID_KEY` | Console Firebase → Cloud Messaging → Configuration du Web → Certificats push web → Clé publique |
+| `FIREBASE_SERVICE_ACCOUNT` | Console Firebase → Paramètres projet → Comptes de service → Générer une nouvelle clé privée (fichier JSON complet) |
+
+### Variable Firebase CLI
+
+| Variable | Comment l'obtenir |
+|---|---|
+| `FIREBASE_TOKEN` | En local : `firebase login:ci` — copier le token affiché |
+
+### Variable GitHub Actions (automatique)
+
+| Variable | Description |
+|---|---|
+| `GITHUB_TOKEN` | Fourni automatiquement par GitHub Actions — aucune configuration nécessaire |
+
+---
+
+## Structure du projet
+
 ```
-
-```bash
-firebase deploy --only functions
+src/
+├── app/
+│   ├── component/
+│   │   ├── header/          # En-tête avec prochain passage
+│   │   ├── navigation/      # Onglets de navigation
+│   │   ├── rotation/        # Liste de la rotation
+│   │   ├── remplacement/    # Déclarer une absence / remplaçant
+│   │   ├── historique/      # Historique des rotations
+│   │   ├── rappels/         # Préférences de notifications
+│   │   ├── parametres/      # Réglages (admin)
+│   │   ├── login/           # Authentification
+│   │   ├── sync-bar/        # Indicateur de synchronisation
+│   │   └── modaux/          # Fenêtres modales (ajout, édition, suppression)
+│   ├── croissant.service.ts # Service principal (état, Firebase, logique métier)
+│   └── app.html             # Racine de l'application
+├── environments/
+│   ├── environment.ts           # Dev (valeurs vides)
+│   ├── environment.local.ts     # Local (⚠️ non commité)
+│   └── environment.prod.ts      # Production (⚠️ généré par CI)
+public/
+├── firebase-config.js           # Config SW (⚠️ non commité)
+├── firebase-config.example.js   # Template à copier
+└── firebase-messaging-sw.js     # Service Worker FCM
+.github/
+├── workflows/
+│   ├── release.yml              # Build + déploiement auto
+│   ├── reminder-eve.yml         # Rappel dimanche soir
+│   ├── reminder-morning.yml     # Rappel lundi matin
+│   └── pr-check.yml             # Vérification build sur PR
+└── scripts/
+    ├── send-reminders.js        # Envoi des notifications FCM
+    ├── delete-users.js          # Suppression des comptes en attente
+    └── bump-version.js          # Gestion du versioning sémantique
 ```
-
-## Sécurité
-
-Les clés Firebase côté client sont **publiques par design** (c'est la norme Firebase).
-La sécurité repose sur les **Firestore Security Rules** — voir `firestore.rules`.
 
 ---
 
