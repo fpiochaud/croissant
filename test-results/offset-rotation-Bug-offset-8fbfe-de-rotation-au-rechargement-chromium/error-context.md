@@ -1,0 +1,144 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic: 🥐
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: 🥐 Croissants
+        - generic [ref=e8]: Équipe Test
+      - generic [ref=e9]:
+        - button "↺" [ref=e10] [cursor=pointer]
+        - button [ref=e11] [cursor=pointer]:
+          - img [ref=e12]
+    - generic [ref=e15]:
+      - generic [ref=e16]: BO
+      - generic [ref=e17]:
+        - generic [ref=e18]: Prochain tour
+        - generic [ref=e19]: Bob
+        - generic [ref=e20]: lundi 30 mars
+  - generic [ref=e24]: Synchronisé avec Firebase
+  - navigation [ref=e26]:
+    - button "📋 Liste" [ref=e27] [cursor=pointer]:
+      - generic [ref=e28]: 📋
+      - text: Liste
+    - button "🔄 Remplacer" [ref=e29] [cursor=pointer]:
+      - generic [ref=e30]: 🔄
+      - text: Remplacer
+    - button "📅 Historique" [ref=e31] [cursor=pointer]:
+      - generic [ref=e32]: 📅
+      - text: Historique
+    - button "🔔 Rappels" [ref=e33] [cursor=pointer]:
+      - generic [ref=e34]: 🔔
+      - text: Rappels
+    - button "⚙️ Réglages" [ref=e35] [cursor=pointer]:
+      - generic [ref=e36]: ⚙️
+      - text: Réglages
+  - generic [ref=e39]:
+    - generic [ref=e40]: Ordre de passage
+    - generic [ref=e41]:
+      - generic [ref=e42] [cursor=pointer]:
+        - generic [ref=e43]: BO
+        - generic [ref=e44]:
+          - generic [ref=e45]: Bob
+          - generic [ref=e46]: 🗓 Prévu le lundi 30 mars
+        - generic [ref=e47]:
+          - button "✏️" [ref=e48]
+          - button "🗑️" [ref=e49]
+      - generic [ref=e50] [cursor=pointer]:
+        - generic [ref=e51]: CH
+        - generic [ref=e52]:
+          - generic [ref=e53]: Charlie
+          - generic [ref=e54]: 🗓 Prévu le lundi 6 avr.
+        - generic [ref=e55]:
+          - button "✏️" [ref=e56]
+          - button "🗑️" [ref=e57]
+      - generic [ref=e58] [cursor=pointer]:
+        - generic [ref=e59]: DI
+        - generic [ref=e60]:
+          - generic [ref=e61]: Diana
+          - generic [ref=e62]: 🗓 Prévu le lundi 13 avr.
+        - generic [ref=e63]:
+          - button "✏️" [ref=e64]
+          - button "🗑️" [ref=e65]
+      - generic [ref=e66] [cursor=pointer]:
+        - generic [ref=e67]: AL
+        - generic [ref=e68]:
+          - generic [ref=e69]: Alice
+          - generic [ref=e70]: 🗓 Prévu le lundi 20 avr.
+        - generic [ref=e71]:
+          - button "✏️" [ref=e72]
+          - button "🗑️" [ref=e73]
+  - generic:
+    - generic:
+      - generic:
+        - generic: Ajouter une personne
+        - generic:
+          - generic:
+            - generic: Prénom et nom
+            - textbox "ex. Sophie Lemaire"
+          - generic:
+            - generic: Initiales (2 lettres)
+            - textbox "SL"
+          - generic:
+            - generic: Email (optionnel)
+            - textbox "sophie@example.com"
+          - generic:
+            - generic: Couleur
+          - button "Ajouter ✓"
+    - generic:
+      - generic:
+        - generic: Modifier
+        - generic:
+          - generic:
+            - generic: Prénom et nom
+            - textbox
+          - generic:
+            - generic: Initiales (2 lettres)
+            - textbox
+          - generic:
+            - generic: Email
+            - textbox "sophie@example.com"
+          - generic:
+            - generic: Statut
+            - combobox [disabled]:
+              - option "Disponible" [selected]
+              - option "Absent"
+          - generic:
+            - generic: Couleur
+          - generic:
+            - button "Enregistrer"
+            - button "🗑"
+    - generic:
+      - generic:
+        - generic: Supprimer le membre
+        - generic:
+          - paragraph:
+            - text: Supprimer
+            - strong
+            - text: "?"
+            - text: Cette action est irréversible.
+          - generic:
+            - button "Annuler"
+            - button "Supprimer"
+    - generic:
+      - generic:
+        - generic: Passer en premier
+        - generic:
+          - paragraph:
+            - text: Passer
+            - strong
+            - text: en premier dans la liste ?
+          - generic:
+            - button "Annuler"
+            - button "Confirmer"
+    - generic:
+      - generic:
+        - generic: Fonctionnalité indisponible
+        - generic:
+          - paragraph:
+            - text: 🥐 C'est jour de croissants !
+            - text: Cette fonctionnalité est désactivée aujourd'hui, réessaie demain.
+          - button "OK"
+```

@@ -14,7 +14,7 @@
 				<div class="settings-row">
 					<span class="settings-icon">📅</span>
 					<span class="settings-label">Prochaine session</span>
-					<select [value]="sessionOffset()" (change)="setSessionOffset($event)" style="font-size:13px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);">
+					<select data-testid="session-offset" [value]="sessionOffset()" (change)="setSessionOffset($event)" style="font-size:13px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);">
 						<option value="0">+0 — Lundi (par défaut)</option>
 						<option value="1">+1 — Mardi</option>
 						<option value="2">+2 — Mercredi</option>

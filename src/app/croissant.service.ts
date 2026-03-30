@@ -3,12 +3,13 @@ import { initializeApp, FirebaseApp } from 'firebase/app';
 import {
   getFirestore, doc, collection,
   onSnapshot, setDoc, updateDoc, addDoc, deleteDoc, getDoc, getDocs,
-  orderBy, query, where, limit, serverTimestamp, writeBatch, Firestore
+  orderBy, query, where, limit, serverTimestamp, writeBatch, Firestore,
+  connectFirestoreEmulator,
 } from 'firebase/firestore';
 import { getMessaging, getToken, deleteToken, onMessage, Messaging } from 'firebase/messaging';
 import {
   getAuth, signInWithEmailAndPassword, signOut,
-  onAuthStateChanged, Auth, User
+  onAuthStateChanged, Auth, User, connectAuthEmulator,
 } from 'firebase/auth';
 import { environment } from '../environments/environment';
 
@@ -111,6 +112,10 @@ export class CroissantService {
     this.app  = initializeApp(environment.firebase);
     this.db   = getFirestore(this.app);
     this.auth = getAuth(this.app);
+    if (environment.useEmulators) {
+      connectFirestoreEmulator(this.db, 'localhost', 8080);
+      connectAuthEmulator(this.auth, 'http://localhost:9099', { disableWarnings: true });
+    }
     // Applique le dark mode dès le démarrage (depuis localStorage) pour éviter le flash
     document.body.classList.toggle('dark', this.darkMode());
     this.initAuth();
