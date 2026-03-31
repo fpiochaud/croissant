@@ -333,23 +333,25 @@ export class CroissantService {
     });
   }
 
-  // Quand l'absent est en tête de liste, on fait passer le remplaçant devant lui
+  // Déplace le remplaçant juste devant l'absent, quel que soit son rang dans la liste.
   promoteReplacement(absentId: string, replacementId: string) {
     const persons = [...this.state().persons];
-    if (persons[0]?.id !== absentId) return; // l'absent n'est pas premier, rien à faire
-
+    const absentIdx      = persons.findIndex(p => p.id === absentId);
     const replacementIdx = persons.findIndex(p => p.id === replacementId);
-    if (replacementIdx <= 0) return;
+
+    if (absentIdx === -1 || replacementIdx === -1) return;
+    // Le remplaçant est déjà devant l'absent : rien à faire
+    if (replacementIdx <= absentIdx) return;
 
     const [replacement] = persons.splice(replacementIdx, 1);
-    persons.unshift(replacement); // insère le remplaçant en position 0
+    persons.splice(absentIdx, 0, replacement); // insère juste devant l'absent
 
     this.state.update(s => ({ ...s, persons: persons.map((p, i) => ({ ...p, rank: i })) }));
 
     const batch = writeBatch(this.db);
     persons.forEach((p, i) => {
       const update: any = { rank: i };
-      if (p.id === absentId) update.promoted = true; // marque qu'il a été décalé
+      if (p.id === absentId) update.promoted = true;
       batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), update);
     });
     batch.commit();
@@ -366,8 +368,10 @@ export class CroissantService {
   private async checkAndRotate(persons: Person[]) {
     const teamSnap = await getDoc(doc(this.db, 'teams', this.teamId));
     const lastRotationDate: string | null = teamSnap.data()?.['lastRotationDate'] ?? null;
-    const offset: number = teamSnap.data()?.['sessionOffset'] ?? 0;
-    const mostRecentPastCroissantDay = getMostRecentPastCroissantDay(offset);
+    // On compare toujours contre le lundi (offset=0) : le sessionOffset n'est qu'un
+    // décalage d'affichage dans la semaine, il ne doit pas influer sur le déclenchement
+    // de la rotation. Sans ça, changer l'offset peut déclencher une rotation parasite.
+    const mostRecentPastCroissantDay = getMostRecentPastCroissantDay(0);
 
     if (lastRotationDate && lastRotationDate >= mostRecentPastCroissantDay) return;
 
@@ -379,8 +383,9 @@ export class CroissantService {
     const batch = writeBatch(this.db);
     updated.forEach((p, i) => {
       const update: any = { rank: i };
-      // Les absents passent en mode "rattrapage" (leur absentDate est conservé pour l'affichage)
-      if (p.status === 'absent') {
+      // Seul le nouveau premier (rang 0) passe en rattrapage s'il était absent.
+      // Les autres absents (rang >= 1) gardent leur statut ⛔ : ce n'est pas encore leur tour.
+      if (i === 0 && p.status === 'absent') {
         update.status = 'catch';
         update.replacedBy = null;
       }

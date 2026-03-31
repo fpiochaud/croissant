@@ -24,11 +24,14 @@ export class RotationComponent {
     });
 
     return persons.map((person, index) => {
-      let date = rawDates[index];
-      // La personne qui suit un absent le remplace : afficher la date du slot de l'absent
-      if (index > 0 && persons[index - 1].status === 'absent') {
-        date = rawDates[index - 1];
+      // Cascade récursive : remonter tous les absents consécutifs pour trouver
+      // le premier slot disponible. Exemple : [A(absent), B(absent), C] → C hérite
+      // du slot de A, pas du slot de B.
+      let slot = index;
+      while (slot > 0 && persons[slot - 1].status === 'absent' && !persons[slot - 1].replacedBy) {
+        slot--;
       }
+      const date = rawDates[slot];
       const label = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
       return { ...person, dateLabel: label };
     });
