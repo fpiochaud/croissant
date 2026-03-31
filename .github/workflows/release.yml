@@ -86,6 +86,7 @@ jobs:
           cat > src/environments/environment.prod.ts << EOF
           export const environment = {
             production: true,
+            useEmulators: false,
             teamId: 'equipe-lundi',
             firebase: {
               apiKey: '${FIREBASE_API_KEY}',
