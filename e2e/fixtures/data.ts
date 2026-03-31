@@ -45,6 +45,65 @@ export interface TeamDocOverrides {
   sessionOffset?: number;
 }
 
+/**
+ * Retourne le libellé de date du prochain lundi (ou aujourd'hui si lundi)
+ * au format utilisé par le composant rotation (fr-FR).
+ * Correspond à rawDates[0] avec offset=0 dans personsWithDates.
+ */
+export function getSlot0Label(): string {
+  return getSlotLabel(0);
+}
+
+/**
+ * Retourne le libellé de date du slot n (prochain lundi + n*7 jours)
+ * au format utilisé par le composant rotation (fr-FR).
+ */
+export function getSlotLabel(n: number): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const day = today.getDay();
+  const daysUntilMonday = day === 1 ? 0 : (day === 0 ? 1 : 8 - day);
+  const nextMonday = new Date(today);
+  nextMonday.setDate(today.getDate() + daysUntilMonday + n * 7);
+  return nextMonday.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
+}
+
+/**
+ * Retourne le libellé de date d'absence pour le slot n, au format utilisé par
+ * le service lors de l'enregistrement (fr-FR, sans jour de la semaine).
+ * Ex: "30 mars", "6 avr."
+ * Correspond à getNextCroissantDay(0) + n*7 jours.
+ */
+export function getAbsentDateLabel(slotIndex: number): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const day = today.getDay();
+  const daysUntilMonday = day === 1 ? 0 : (day === 0 ? 1 : 8 - day);
+  const d = new Date(today);
+  d.setDate(today.getDate() + daysUntilMonday + slotIndex * 7);
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+/**
+ * Retourne le libellé du dernier lundi passé au format court fr-FR (ex: "30 mars").
+ * Correspond à la date d'absence d'une personne qui était au rang 0 lors de la rotation précédente.
+ */
+export function getLastMondayLabel(): string {
+  const lastMonday = getMostRecentPastDay(0);
+  return new Date(lastMonday + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+/**
+ * Retourne la date ISO du lundi précédant le dernier lundi passé.
+ * Utiliser comme lastRotationDate pour déclencher une rotation lors du chargement.
+ */
+export function getPreviousRotationDate(): string {
+  const lastMonday = getMostRecentPastDay(0);
+  const d = new Date(lastMonday);
+  d.setDate(d.getDate() - 7);
+  return d.toISOString().split('T')[0];
+}
+
 export function makeTeamDoc(overrides: TeamDocOverrides = {}) {
   return {
     teamName: 'Équipe Test',

@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 import { seedTestData, seedPersons } from '../helpers/seed';
 import { loginAsAdmin } from '../helpers/auth';
 import { personCard } from '../helpers/selectors';
-import { getMostRecentPastDay } from '../fixtures/data';
+import { getMostRecentPastDay, getAbsentDateLabel } from '../fixtures/data';
 
 test.describe('Liste de rotation', () => {
   test.beforeEach(async () => {
@@ -37,7 +37,7 @@ test.describe('Liste de rotation', () => {
 
   test('une personne absente affiche le badge ⛔ et la date d absence', async ({ page }) => {
     await seedPersons([
-      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 0, replacedBy: 'Bob', absentDate: '31 mar', catchupDate: '7 avr' },
+      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 0, replacedBy: 'Bob', absentDate: getAbsentDateLabel(0), catchupDate: getAbsentDateLabel(1) },
       { id: 'bob',     name: 'Bob',     initials: 'BO', color: 'c2', status: 'ok',     rank: 1 },
       { id: 'charlie', name: 'Charlie', initials: 'CH', color: 'c3', status: 'ok',     rank: 2 },
       { id: 'diana',   name: 'Diana',   initials: 'DI', color: 'c4', status: 'ok',     rank: 3 },
@@ -47,9 +47,9 @@ test.describe('Liste de rotation', () => {
 
     const aliceCard = personCard(page, 'Alice');
     await expect(aliceCard).toContainText('⛔');
-    await expect(aliceCard).toContainText('31 mar');
+    await expect(aliceCard).toContainText(getAbsentDateLabel(0));
     await expect(aliceCard).toContainText('remplacé par Bob');
-    await expect(aliceCard).toContainText('Rattrapage le 7 avr');
+    await expect(aliceCard).toContainText(`Rattrapage le ${getAbsentDateLabel(1)}`);
   });
 
   test('une personne en rattrapage affiche la mention "rattrapage"', async ({ page }) => {
@@ -65,33 +65,6 @@ test.describe('Liste de rotation', () => {
     const aliceCard = personCard(page, 'Alice');
     await expect(aliceCard).toContainText('rattrapage');
     await expect(aliceCard).toContainText('24 mar');
-  });
-
-  test('le remplaçant (rang 1) prend la date de l absent (rang 0)', async ({ page }) => {
-    // Alice (rang 0) absente → Bob (rang 1) doit afficher la même date qu'Alice
-    await seedPersons([
-      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 0, replacedBy: 'Bob', absentDate: '31 mar' },
-      { id: 'bob',     name: 'Bob',     initials: 'BO', color: 'c2', status: 'ok',     rank: 1 },
-      { id: 'charlie', name: 'Charlie', initials: 'CH', color: 'c3', status: 'ok',     rank: 2 },
-      { id: 'diana',   name: 'Diana',   initials: 'DI', color: 'c4', status: 'ok',     rank: 3 },
-    ]);
-
-    await loginAsAdmin(page);
-
-    // Vérifier que la date de Bob correspond au créneau de Alice
-    // (Bob est au rang 1 mais hérite du slot du rang 0 puisque Alice est absente)
-    const bobCard   = personCard(page, 'Bob');
-    const aliceCard = personCard(page, 'Alice');
-
-    // Alice affiche absentDate = "31 mar"
-    await expect(aliceCard).toContainText('31 mar');
-
-    // Bob doit afficher la même semaine qu'Alice (il apporte les croissants à sa place)
-    const bobMeta = await bobCard.locator('.person-meta').textContent() ?? '';
-    // La date de Bob doit être identique à la rawDate du rang 0
-    // (lundi prochain ou aujourd'hui si lundi, + offset 0)
-    // On vérifie que Bob n'est pas "prévu" une semaine après (ce serait rang 1 sans cascade)
-    expect(bobMeta).toMatch(/lundi|mardi|mercredi|jeudi|vendredi/i);
   });
 
   test('login échoue avec mauvais mot de passe', async ({ page }) => {

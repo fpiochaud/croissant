@@ -21,7 +21,7 @@ import { test, expect } from '@playwright/test';
 import { seedTestData, seedPersons } from '../helpers/seed';
 import { loginAsAdmin } from '../helpers/auth';
 import { personCard } from '../helpers/selectors';
-import { getMostRecentPastDay } from '../fixtures/data';
+import { getMostRecentPastDay, getSlot0Label, getSlotLabel, getAbsentDateLabel } from '../fixtures/data';
 
 test.describe('Bug multiples absents', () => {
   test.beforeEach(async () => {
@@ -68,7 +68,7 @@ test.describe('Bug multiples absents', () => {
     // Liste : [Bob(0,ok), Alice(1,absent,remplacé par Bob), Charlie(2,ok), Diana(3,ok)]
     await seedPersons([
       { id: 'bob',     name: 'Bob',     initials: 'BO', color: 'c2', status: 'ok',     rank: 0 },
-      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 1, replacedBy: 'Bob',   absentDate: '31 mar', catchupDate: '7 avr' },
+      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 1, replacedBy: 'Bob',   absentDate: getAbsentDateLabel(0), catchupDate: getAbsentDateLabel(1) },
       { id: 'charlie', name: 'Charlie', initials: 'CH', color: 'c3', status: 'ok',     rank: 2 },
       { id: 'diana',   name: 'Diana',   initials: 'DI', color: 'c4', status: 'ok',     rank: 3 },
     ]);
@@ -92,14 +92,14 @@ test.describe('Bug multiples absents', () => {
     expect(dianaMetaText).toBeTruthy();
   });
 
-  // ── Bug #3 ────────────────────────────────────────────────────────────────
-
-  test('cascade de dates — deux absents consécutifs', async ({ page }) => {
-    // Alice(0,absent) ET Bob(1,absent) : Charlie (rang 2) doit hériter du
-    // créneau de Alice (rang 0), pas de Bob (rang 1).
+  test('Charlie (rang 2) garde sa propre date quand Alice (rang 1) est absente avec remplacement', async ({ page }) => {
+    // Liste : [Bob(0,ok), Alice(1,absent,replacedBy:'Bob'), Charlie(2,ok), Diana(3,ok)]
+    // Bob a déjà été promu en tête → Alice reste en rang 1 avec replacedBy.
+    // Charlie ne doit PAS hériter du slot d'Alice (rawDates[1] = slot 1)
+    // mais afficher son propre slot (rawDates[2] = slot 2 = +14 jours).
     await seedPersons([
-      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 0, replacedBy: 'Charlie', absentDate: '31 mar', catchupDate: '7 avr' },
-      { id: 'bob',     name: 'Bob',     initials: 'BO', color: 'c2', status: 'absent', rank: 1, replacedBy: 'Diana',   absentDate: '7 avr',  catchupDate: '14 avr' },
+      { id: 'bob',     name: 'Bob',     initials: 'BO', color: 'c2', status: 'ok',     rank: 0 },
+      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 1, replacedBy: 'Bob', absentDate: getAbsentDateLabel(0), catchupDate: getAbsentDateLabel(1) },
       { id: 'charlie', name: 'Charlie', initials: 'CH', color: 'c3', status: 'ok',     rank: 2 },
       { id: 'diana',   name: 'Diana',   initials: 'DI', color: 'c4', status: 'ok',     rank: 3 },
     ]);
@@ -107,10 +107,32 @@ test.describe('Bug multiples absents', () => {
     await loginAsAdmin(page);
     await page.locator('[data-testid="nav-rotation"]').click();
 
-    // La date affichée pour Charlie doit être celle du rang 0 (Alice = 31 mar),
-    // pas du rang 1 (Bob = 7 avr).
-    // Avec le bug actuel : Charlie affiche "7 avr" (rang 1) → test échoue.
     const charlieMeta = await personCard(page, 'Charlie').locator('.person-meta').textContent() ?? '';
-    expect(charlieMeta).toContain('31 mar');
+    expect(charlieMeta).toContain(getSlotLabel(2));
+    expect(charlieMeta).not.toContain(getSlotLabel(1));
+  });
+
+  // ── Bug #3 ────────────────────────────────────────────────────────────────
+
+  test('cascade de dates — deux absents consécutifs sans remplaçant', async ({ page }) => {
+    // Alice(0,absent) ET Bob(1,absent) sans remplaçant : Charlie (rang 2) doit
+    // hériter du créneau de Alice (rang 0), pas de Bob (rang 1).
+    // Si les absents avaient un replacedBy, la cascade ne s'applique pas
+    // (leur remplaçant est déjà positionné avant eux dans la liste).
+    await seedPersons([
+      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 0, absentDate: getAbsentDateLabel(0), catchupDate: getAbsentDateLabel(1) },
+      { id: 'bob',     name: 'Bob',     initials: 'BO', color: 'c2', status: 'absent', rank: 1, absentDate: getAbsentDateLabel(1), catchupDate: getAbsentDateLabel(2) },
+      { id: 'charlie', name: 'Charlie', initials: 'CH', color: 'c3', status: 'ok',     rank: 2 },
+      { id: 'diana',   name: 'Diana',   initials: 'DI', color: 'c4', status: 'ok',     rank: 3 },
+    ]);
+
+    await loginAsAdmin(page);
+    await page.locator('[data-testid="nav-rotation"]').click();
+
+    // La date affichée pour Charlie doit être celle du slot 0 (rawDates[0] = prochain lundi),
+    // pas du slot 1 (rawDates[1] = prochain lundi + 7 jours).
+    // Avec le bug actuel : Charlie affiche rawDates[1] → test échoue.
+    const charlieMeta = await personCard(page, 'Charlie').locator('.person-meta').textContent() ?? '';
+    expect(charlieMeta).toContain(getSlot0Label());
   });
 });

@@ -50,3 +50,7 @@ src/environments/environment.local.ts
 src/environments/environment.prod.ts
 config/firebase-config.json
 public/firebase-config.js
+
+firebase-debug.log
+
+firestore-debug.log
