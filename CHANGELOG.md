@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.8.1 — 2026-03-31
+
+- fix: correction release
+- fix: correction ci
+- fix: correction ci
+- fix: correction des remplacement et des rotations
+
 ## v1.8.0 — 2026-03-25
 
 - feat: mise en evidence des option admin
