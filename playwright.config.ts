@@ -27,7 +27,7 @@ export default defineConfig({
     },
     {
       // App Angular avec environment e2e (pointe vers les émulateurs)
-      command: 'ng serve --configuration e2e --port 4201',
+      command: 'npx ng serve --configuration e2e --port 4201',
       url: 'http://localhost:4201',
       reuseExistingServer: !process.env['CI'],
       timeout: 120_000,
