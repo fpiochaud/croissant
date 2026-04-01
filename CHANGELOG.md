@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.9.0 — 2026-04-01
+
+- feat: redirection automatique
+- feat: redirection automatique
+
 ## v1.8.2 — 2026-04-01
 
 - fix: remplacement avec offset
