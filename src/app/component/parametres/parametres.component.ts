@@ -1,7 +1,5 @@
 import { Component, computed } from '@angular/core';
 import { CroissantService } from '../../croissant.service';
-import { APP_VERSION } from '../../../version';
-
 @Component({
   selector: 'croissant-parametres',
   imports: [],
@@ -9,7 +7,6 @@ import { APP_VERSION } from '../../../version';
   styleUrl: './parametres.component.css',
 })
 export class ParametresComponent {
-  version = APP_VERSION;
   teamName = computed(() => this.croissant.state().teamName);
   memberCount = computed(() => this.croissant.state().persons.length);
 

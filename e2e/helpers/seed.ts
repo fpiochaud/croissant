@@ -30,31 +30,33 @@ export async function clearEmulators(): Promise<void> {
     fetch(AUTH_BASE, { method: 'DELETE' }),
   ]);
   // Laisser le temps aux émulateurs de finaliser la suppression
-  await new Promise(r => setTimeout(r, 300));
+  await new Promise(r => setTimeout(r, 100));
 }
 
 /** Peuple les émulateurs avec les données de test de base. */
 export async function seedTestData(teamOverrides: TeamDocOverrides = {}): Promise<void> {
   await clearEmulators();
 
-  // Utilisateurs Firebase Auth + docs /users
+  // Batch Firestore : team doc + persons + user docs
+  const batch = db().batch();
+  batch.set(db().collection('teams').doc(TEST_TEAM_ID), makeTeamDoc(teamOverrides));
+  for (const person of TEST_PERSONS) {
+    const { id, ...data } = person;
+    batch.set(db().collection('teams').doc(TEST_TEAM_ID).collection('persons').doc(id), data);
+  }
   for (const user of TEST_USERS) {
-    await auth().createUser({ uid: user.uid, email: user.email, password: user.password });
-    await db().collection('users').doc(user.uid).set({
+    batch.set(db().collection('users').doc(user.uid), {
       email: user.email,
       role: user.role,
       notifPrefs: { eve: false, morning: false, swap: false },
     });
   }
 
-  // Document équipe
-  await db().collection('teams').doc(TEST_TEAM_ID).set(makeTeamDoc(teamOverrides));
-
-  // Personnes
-  for (const person of TEST_PERSONS) {
-    const { id, ...data } = person;
-    await db().collection('teams').doc(TEST_TEAM_ID).collection('persons').doc(id).set(data);
-  }
+  // Paralléliser : auth creates + commit Firestore en une seule passe
+  await Promise.all([
+    ...TEST_USERS.map(u => auth().createUser({ uid: u.uid, email: u.email, password: u.password })),
+    batch.commit(),
+  ]);
 }
 
 /** Remplace les personnes dans Firestore par une liste personnalisée. */
@@ -74,14 +76,16 @@ export async function seedPersons(
 ): Promise<void> {
   const col = db().collection('teams').doc(TEST_TEAM_ID).collection('persons');
   const existing = await col.get();
-  const batch = db().batch();
-  existing.docs.forEach(d => batch.delete(d.ref));
-  await batch.commit();
+  const deleteBatch = db().batch();
+  existing.docs.forEach(d => deleteBatch.delete(d.ref));
+  await deleteBatch.commit();
 
+  const writeBatch = db().batch();
   for (const person of persons) {
     const { id, ...data } = person;
-    await col.doc(id).set(data);
+    writeBatch.set(col.doc(id), data);
   }
+  await writeBatch.commit();
 }
 
 /** Met à jour le document équipe. */

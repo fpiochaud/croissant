@@ -63,6 +63,7 @@ export class RemplacementComponent {
         },
       });
       this.reset();
+      this.croissant.openTab('rotation');
     }
   }
 
@@ -83,6 +84,7 @@ export class RemplacementComponent {
       details: { text: `${absent.name} remplacé(e) manuellement par ${replacement.name}` },
     });
     this.reset();
+    this.croissant.openTab('rotation');
   }
 
   reset() {

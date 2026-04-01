@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { CroissantService } from '../../croissant.service';
+import { APP_VERSION } from '../../../version';
 
 @Component({
   selector: 'croissant-sync-bar',
@@ -11,6 +12,7 @@ import { CroissantService } from '../../croissant.service';
 export class SyncBarComponent {
   croissant = inject(CroissantService);
   syncStatus = this.croissant.syncStatus;
+  version = APP_VERSION;
   syncLabel = computed(() => {
     switch (this.croissant.syncStatus()) {
       case 'online':  return 'Synchronisé avec Firebase';

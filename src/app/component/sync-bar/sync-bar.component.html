@@ -1,4 +1,7 @@
 <div class="sync-bar">
-	<div class="sync-dot" [ngClass]="syncStatus()"></div>
-	<span>{{ syncLabel() }}</span>
+	<div class="sync-status">
+		<div class="sync-dot" [ngClass]="syncStatus()"></div>
+		<span>{{ syncLabel() }}</span>
+	</div>
+	<span class="sync-version">🥐 v{{ version }}</span>
 </div>
