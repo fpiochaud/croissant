@@ -28,12 +28,12 @@ export default defineConfig({
     {
       // En CI : app pré-buildée servie par serve (rapide)
       // En local : ng serve avec hot-reload
-      command: process.env['CI']
+      command: process.env['CI'] || process.env['USE_STATIC_SERVE']
         ? 'npx serve dist/croissant-angular/browser -l 4201 --single'
         : 'npx ng serve --configuration e2e --port 4201',
       url: 'http://localhost:4201',
       reuseExistingServer: !process.env['CI'],
-      timeout: process.env['CI'] ? 15_000 : 120_000,
+      timeout: process.env['CI'] || process.env['USE_STATIC_SERVE'] ? 15_000 : 120_000,
     },
   ],
 });
