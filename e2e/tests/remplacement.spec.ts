@@ -68,7 +68,6 @@ test.describe('Workflow remplacement', () => {
 
     // Aller dans l'historique
     await page.locator('[data-testid="nav-historique"]').click();
-    await page.waitForTimeout(500); // laisser Firestore sync
 
     const histSection = page.locator('#tab-historique');
     await expect(histSection).toContainText('Alice');
@@ -107,7 +106,9 @@ test.describe('Workflow remplacement', () => {
       await page.locator('#absent-select').selectOption({ label: name });
       await page.waitForSelector('#swap-preview:not([style*="display:none"])');
       await page.locator('[data-testid="confirm-swap"]').click();
-      await page.waitForTimeout(300);
+      // Après confirmation, l'app revient sur la liste → retourner sur Remplacer
+      await page.locator('[data-testid="nav-remplacement"]').click();
+      await page.waitForSelector('#absent-select');
     }
 
     // Alice : plus aucun remplaçant disponible
