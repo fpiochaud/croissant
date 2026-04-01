@@ -55,32 +55,32 @@ export function getSlot0Label(): string {
 }
 
 /**
- * Retourne le libellé de date du slot n (prochain lundi + n*7 jours)
- * au format utilisé par le composant rotation (fr-FR).
+ * Retourne le libellé de date du slot n avec offset (prochain lundi + offset + n*7 jours)
+ * au format utilisé par le composant rotation (fr-FR, avec jour de la semaine).
  */
-export function getSlotLabel(n: number): string {
+export function getSlotLabel(n: number, offset = 0): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const day = today.getDay();
   const daysUntilMonday = day === 1 ? 0 : (day === 0 ? 1 : 8 - day);
   const nextMonday = new Date(today);
-  nextMonday.setDate(today.getDate() + daysUntilMonday + n * 7);
+  nextMonday.setDate(today.getDate() + daysUntilMonday + offset + n * 7);
   return nextMonday.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
 }
 
 /**
- * Retourne le libellé de date d'absence pour le slot n, au format utilisé par
- * le service lors de l'enregistrement (fr-FR, sans jour de la semaine).
- * Ex: "30 mars", "6 avr."
- * Correspond à getNextCroissantDay(0) + n*7 jours.
+ * Retourne le libellé de date d'absence pour le slot n avec un offset donné,
+ * au format utilisé par le service lors de l'enregistrement (fr-FR, sans jour de la semaine).
+ * Correspond à getNextCroissantDay(offset) + n*7 jours.
+ * Ex: getAbsentDateLabel(2, 1) = "mardi 21 avr." sans le jour de semaine → "21 avr."
  */
-export function getAbsentDateLabel(slotIndex: number): string {
+export function getAbsentDateLabel(slotIndex: number, offset = 0): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const day = today.getDay();
   const daysUntilMonday = day === 1 ? 0 : (day === 0 ? 1 : 8 - day);
   const d = new Date(today);
-  d.setDate(today.getDate() + daysUntilMonday + slotIndex * 7);
+  d.setDate(today.getDate() + daysUntilMonday + offset + slotIndex * 7);
   return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 

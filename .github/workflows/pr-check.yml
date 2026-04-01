@@ -56,5 +56,24 @@ jobs:
       - name: Installer les dépendances
         run: npm install
 
+      - name: Générer environment.prod.ts (placeholder pour la vérification du build)
+        run: |
+          cat > src/environments/environment.prod.ts << 'EOF'
+          export const environment = {
+            production: true,
+            useEmulators: false,
+            teamId: 'equipe-lundi',
+            firebase: {
+              apiKey: 'placeholder',
+              authDomain: 'placeholder',
+              projectId: 'placeholder',
+              storageBucket: 'placeholder',
+              messagingSenderId: 'placeholder',
+              appId: 'placeholder',
+            },
+            vapidKey: 'placeholder',
+          };
+          EOF
+
       - name: Build Angular (production)
         run: npm run build

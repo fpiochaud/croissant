@@ -17,6 +17,8 @@ export class RotationComponent {
     const persons = this.persons();
 
     // Calcul des dates brutes (un lundi par semaine, + offset uniquement pour le 1er)
+    // L'offset est un décalage ponctuel pour la semaine en cours (ex: jour férié),
+    // pas un changement permanent — les semaines suivantes restent sur le lundi.
     const rawDates = persons.map((_, i) => {
       const d = new Date(nextMonday);
       d.setDate(d.getDate() + i * 7 + (i === 0 ? offset : 0));

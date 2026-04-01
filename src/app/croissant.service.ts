@@ -314,8 +314,10 @@ export class CroissantService {
     // La date d'absence = date prévue de la personne selon son rang actuel
     const persons = this.state().persons;
     const idx = persons.findIndex(p => p.id === personId);
-    const absentDate = new Date(getNextCroissantDay(this.state().sessionOffset));
-    absentDate.setDate(absentDate.getDate() + idx * 7);
+    // L'offset ne s'applique qu'au slot 0 (décalage ponctuel de la semaine en cours),
+    // comme dans personsWithDates. Les slots suivants restent sur le lundi de base.
+    const absentDate = new Date(getNextCroissantDay(0));
+    absentDate.setDate(absentDate.getDate() + idx * 7 + (idx === 0 ? this.state().sessionOffset : 0));
     const absentDateLabel = absentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
     const catchupDateObj = new Date(absentDate);
