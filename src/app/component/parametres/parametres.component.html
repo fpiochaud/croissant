@@ -1,9 +1,6 @@
 <div class="tab" [class.active]="croissant.activeTab() === 'params'" id="tab-params">
 	<div class="section-pad">
-<div style="display:flex;align-items:baseline;justify-content:space-between;">
-			<div class="sec-label">Firebase</div>
-			<span style="font-size:11px;color:var(--text-hint);">🥐 v{{version}}</span>
-		</div>
+		<div class="sec-label">Firebase</div>
 		<div class="settings-section">
 			<div class="settings-row"><span class="settings-icon">🔥</span><span class="settings-label">Statut Firestore</span><span class="settings-value">{{ firestoreStatus() }}</span></div>
 			<div class="settings-row"><span class="settings-icon">🔔</span><span class="settings-label">Token FCM enregistré</span><span class="settings-value">{{ fcmLabel() }}</span></div>

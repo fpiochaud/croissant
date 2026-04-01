@@ -44,7 +44,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .next-badge { margin-left: auto; background: #4F46E5; border: 1px solid #6366F1; color: #fff; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; box-shadow: 0 2px 8px rgba(79,70,229,0.5); }
 
 /* SYNC STATUS */
-.sync-bar { display: flex; align-items: center; gap: 8px; padding: 6px 16px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-muted); }
+.sync-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-muted); }
+.sync-status { display: flex; align-items: center; gap: 8px; }
+.sync-version { opacity: 0.6; }
 .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
 .sync-dot.online { background: var(--green); }
 .sync-dot.offline { background: var(--red); }

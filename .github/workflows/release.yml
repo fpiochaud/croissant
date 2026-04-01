@@ -30,6 +30,9 @@ jobs:
       - name: Installer Chromium (Playwright)
         run: npx playwright install --with-deps chromium
 
+      - name: Build Angular (configuration e2e)
+        run: npx ng build --configuration e2e
+
       - name: Lancer les tests e2e
         run: npm run e2e
 

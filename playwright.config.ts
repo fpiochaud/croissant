@@ -26,11 +26,14 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      // App Angular avec environment e2e (pointe vers les émulateurs)
-      command: 'npx ng serve --configuration e2e --port 4201',
+      // En CI : app pré-buildée servie par serve (rapide)
+      // En local : ng serve avec hot-reload
+      command: process.env['CI'] || process.env['USE_STATIC_SERVE']
+        ? 'npx serve dist/croissant-angular/browser -l 4201 --single'
+        : 'npx ng serve --configuration e2e --port 4201',
       url: 'http://localhost:4201',
       reuseExistingServer: !process.env['CI'],
-      timeout: 120_000,
+      timeout: process.env['CI'] || process.env['USE_STATIC_SERVE'] ? 15_000 : 120_000,
     },
   ],
 });

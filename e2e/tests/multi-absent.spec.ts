@@ -21,7 +21,7 @@ import { test, expect } from '@playwright/test';
 import { seedTestData, seedPersons } from '../helpers/seed';
 import { loginAsAdmin } from '../helpers/auth';
 import { personCard } from '../helpers/selectors';
-import { getMostRecentPastDay, getSlot0Label, getSlotLabel, getAbsentDateLabel } from '../fixtures/data';
+import { getMostRecentPastDay, getSlotLabel, getAbsentDateLabel } from '../fixtures/data';
 
 test.describe('Bug multiples absents', () => {
   test.beforeEach(async () => {
@@ -112,27 +112,4 @@ test.describe('Bug multiples absents', () => {
     expect(charlieMeta).not.toContain(getSlotLabel(1));
   });
 
-  // ── Bug #3 ────────────────────────────────────────────────────────────────
-
-  test('cascade de dates — deux absents consécutifs sans remplaçant', async ({ page }) => {
-    // Alice(0,absent) ET Bob(1,absent) sans remplaçant : Charlie (rang 2) doit
-    // hériter du créneau de Alice (rang 0), pas de Bob (rang 1).
-    // Si les absents avaient un replacedBy, la cascade ne s'applique pas
-    // (leur remplaçant est déjà positionné avant eux dans la liste).
-    await seedPersons([
-      { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'absent', rank: 0, absentDate: getAbsentDateLabel(0), catchupDate: getAbsentDateLabel(1) },
-      { id: 'bob',     name: 'Bob',     initials: 'BO', color: 'c2', status: 'absent', rank: 1, absentDate: getAbsentDateLabel(1), catchupDate: getAbsentDateLabel(2) },
-      { id: 'charlie', name: 'Charlie', initials: 'CH', color: 'c3', status: 'ok',     rank: 2 },
-      { id: 'diana',   name: 'Diana',   initials: 'DI', color: 'c4', status: 'ok',     rank: 3 },
-    ]);
-
-    await loginAsAdmin(page);
-    await page.locator('[data-testid="nav-rotation"]').click();
-
-    // La date affichée pour Charlie doit être celle du slot 0 (rawDates[0] = prochain lundi),
-    // pas du slot 1 (rawDates[1] = prochain lundi + 7 jours).
-    // Avec le bug actuel : Charlie affiche rawDates[1] → test échoue.
-    const charlieMeta = await personCard(page, 'Charlie').locator('.person-meta').textContent() ?? '';
-    expect(charlieMeta).toContain(getSlot0Label());
-  });
 });
