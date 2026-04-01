@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.8.2 — 2026-04-01
+
+- fix: remplacement avec offset
+
 ## v1.8.1 — 2026-03-31
 
 - fix: correction release
