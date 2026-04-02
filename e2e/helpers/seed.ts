@@ -107,3 +107,26 @@ export async function getPersonsFromDb(): Promise<Array<Record<string, unknown>>
     .get();
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
+
+/** Lit les personnes ayant un email donné depuis Firestore. */
+export async function getPersonsByEmail(email: string): Promise<Array<Record<string, unknown>>> {
+  const snap = await db()
+    .collection('teams').doc(TEST_TEAM_ID).collection('persons')
+    .where('email', '==', email)
+    .get();
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+/** Crée un utilisateur Firebase Auth uniquement (sans document Firestore). */
+export async function createAuthUser(user: { uid: string; email: string; password: string }): Promise<void> {
+  await auth().createUser({ uid: user.uid, email: user.email, password: user.password });
+}
+
+/** Crée un document users/{uid} dans Firestore (simule une première connexion partiellement réussie). */
+export async function createUserDoc(uid: string, email: string): Promise<void> {
+  await db().collection('users').doc(uid).set({
+    email,
+    role: 'member',
+    notifPrefs: { eve: true, morning: true, swap: true },
+  });
+}

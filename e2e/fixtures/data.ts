@@ -17,12 +17,13 @@ export const TEST_USERS = [
   },
 ];
 
-// Ordre initial : Alice → Bob → Charlie → Diana
+// Ordre initial : Alice → Bob → Charlie → Diana → Admin
 export const TEST_PERSONS = [
-  { id: 'alice', name: 'Alice', initials: 'AL', color: 'c1', status: 'ok' as const, rank: 0, email: 'alice@test.com' },
-  { id: 'bob',   name: 'Bob',   initials: 'BO', color: 'c2', status: 'ok' as const, rank: 1, email: 'bob@test.com'   },
+  { id: 'alice',   name: 'Alice',   initials: 'AL', color: 'c1', status: 'ok' as const, rank: 0, email: 'alice@test.com'   },
+  { id: 'bob',     name: 'Bob',     initials: 'BO', color: 'c2', status: 'ok' as const, rank: 1, email: 'bob@test.com'     },
   { id: 'charlie', name: 'Charlie', initials: 'CH', color: 'c3', status: 'ok' as const, rank: 2, email: 'charlie@test.com' },
-  { id: 'diana', name: 'Diana', initials: 'DI', color: 'c4', status: 'ok' as const, rank: 3, email: 'diana@test.com' },
+  { id: 'diana',   name: 'Diana',   initials: 'DI', color: 'c4', status: 'ok' as const, rank: 3, email: 'diana@test.com'   },
+  { id: 'admin',   name: 'Admin',   initials: 'AD', color: 'c5', status: 'ok' as const, rank: 4, email: 'admin@test.com'   },
 ];
 
 /**

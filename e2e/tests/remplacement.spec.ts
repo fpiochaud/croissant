@@ -102,7 +102,7 @@ test.describe('Workflow remplacement', () => {
     await page.locator('[data-testid="nav-remplacement"]').click();
 
     // Marquer Bob, Charlie et Diana absents avant de tester Alice
-    for (const name of ['Bob', 'Charlie', 'Diana']) {
+    for (const name of ['Bob', 'Charlie', 'Diana', 'Admin']) {
       await page.locator('#absent-select').selectOption({ label: name });
       await page.waitForSelector('#swap-preview:not([style*="display:none"])');
       await page.locator('[data-testid="confirm-swap"]').click();

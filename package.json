@@ -7,9 +7,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "e2e": "playwright test",
-    "e2e:fast": "ng build --configuration e2e && USE_STATIC_SERVE=true playwright test",
-    "e2e:ui": "playwright test --ui"
+    "e2e:kill": "fuser -k 8080/tcp 9099/tcp 4201/tcp 2>/dev/null || true",
+    "e2e": "npm run e2e:kill && playwright test",
+    "e2e:fast": "npm run e2e:kill && ng build --configuration e2e && USE_STATIC_SERVE=true playwright test",
+    "e2e:ui": "npm run e2e:kill && playwright test --ui"
   },
   "private": true,
   "packageManager": "npm@11.6.2",
