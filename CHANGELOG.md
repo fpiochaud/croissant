@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.9.1 — 2026-04-03
+
+- fix: création de nouvel utilisateur
+
 ## v1.9.0 — 2026-04-01
 
 - feat: redirection automatique
