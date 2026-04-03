@@ -18,7 +18,7 @@ test.describe('Liste de rotation', () => {
     await loginAsAdmin(page);
 
     const names = await page.locator('#rotation-list .person-name').allTextContents();
-    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
+    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'Admin']);
   });
 
   test('toutes les cartes affichent une date prévisionnelle', async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('Liste de rotation', () => {
 
     const cards = page.locator('#rotation-list .person-card');
     const count = await cards.count();
-    expect(count).toBe(4);
+    expect(count).toBe(5);
 
     for (let i = 0; i < count; i++) {
       const meta = await cards.nth(i).locator('.person-meta').textContent();

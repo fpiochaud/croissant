@@ -152,9 +152,14 @@ export class CroissantService {
 
       if (!userSnap.exists()) {
         await setDoc(userRef, { email: user.email, role: 'member', notifPrefs: { eve: true, morning: true, swap: true }, createdAt: serverTimestamp() });
-        await this.addPersonFromEmail(user.email ?? '');
       } else {
         role = userSnap.data()?.['role'] ?? 'member';
+      }
+
+      try {
+        await this.addPersonFromEmail(user.email ?? '');
+      } catch (e) {
+        console.error('[auth] addPersonFromEmail failed:', e);
       }
 
       this.currentUser.set(user);

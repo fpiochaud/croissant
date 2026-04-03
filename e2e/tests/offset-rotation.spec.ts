@@ -26,7 +26,7 @@ test.describe('Bug offset — rotation parasite', () => {
 
     // Ordre initial
     const initialNames = await page.locator('#rotation-list .person-name').allTextContents();
-    expect(initialNames).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
+    expect(initialNames).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'Admin']);
 
     // Aller dans Réglages et changer l'offset à +1 (Mardi)
     await page.locator('[data-testid="nav-params"]').click();
@@ -39,12 +39,12 @@ test.describe('Bug offset — rotation parasite', () => {
 
     // L'ordre NE DOIT PAS avoir changé — aucune rotation ne doit s'être déclenchée
     const namesAfterReload = await page.locator('#rotation-list .person-name').allTextContents();
-    expect(namesAfterReload).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
+    expect(namesAfterReload).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'Admin']);
 
     // Vérifier aussi côté Firestore que les rangs sont inchangés
     const persons = await getPersonsFromDb();
     const names = persons.map(p => p['name']);
-    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
+    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'Admin']);
   });
 
   test('changer le offset à +2 ne déclenche pas de rotation au rechargement', async ({ page }) => {
@@ -58,7 +58,7 @@ test.describe('Bug offset — rotation parasite', () => {
     await page.waitForSelector('#rotation-list');
 
     const names = await page.locator('#rotation-list .person-name').allTextContents();
-    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
+    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'Admin']);
   });
 
   test('remettre le offset à 0 après un changement ne déclenche pas de rotation', async ({ page }) => {
@@ -78,6 +78,6 @@ test.describe('Bug offset — rotation parasite', () => {
     await page.waitForSelector('#rotation-list');
 
     const names = await page.locator('#rotation-list .person-name').allTextContents();
-    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
+    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'Admin']);
   });
 });

@@ -15,3 +15,10 @@ export async function loginAs(page: Page, email: string, password: string): Prom
 export async function loginAsAdmin(page: Page): Promise<void> {
   await loginAs(page, TEST_ADMIN.email, TEST_ADMIN.password);
 }
+
+/** Déconnecte l'utilisateur courant via le menu header et attend le formulaire de login. */
+export async function logout(page: Page): Promise<void> {
+  await page.locator('.header-settings').last().click();
+  await page.locator('.account-dropdown-logout').click();
+  await page.waitForSelector('.auth-input', { timeout: 10_000 });
+}
