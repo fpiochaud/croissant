@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.9.2 — 2026-04-07
+
+- fix: correction de la rotation.
+
 ## v1.9.1 — 2026-04-03
 
 - fix: création de nouvel utilisateur
