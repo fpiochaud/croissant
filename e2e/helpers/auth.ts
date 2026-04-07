@@ -8,12 +8,18 @@ export async function loginAs(page: Page, email: string, password: string): Prom
   await page.locator('.auth-input[type="email"]').fill(email);
   await page.locator('.auth-input[type="password"]').fill(password);
   await page.locator('.auth-card .btn-primary').click();
-  await page.waitForSelector('#rotation-list', { timeout: 15_000 });
+  // Attendre que les personnes soient chargées depuis Firestore (pas juste le div vide).
+  // On attend au moins 1 card pour les connexions "new user" (1 seul membre créé),
+  // mais loginAsAdmin attend le 5ème card explicitement (voir ci-dessous).
+  await page.waitForSelector('#rotation-list .person-card', { timeout: 15_000 });
 }
 
-/** Connecte l'administrateur de test. */
+/** Connecte l'administrateur de test et attend que les 5 personnes soient chargées. */
 export async function loginAsAdmin(page: Page): Promise<void> {
   await loginAs(page, TEST_ADMIN.email, TEST_ADMIN.password);
+  // loginAs attend le 1er card — on attend ensuite le 5ème pour s'assurer que
+  // tous les membres (Alice, Bob, Charlie, Diana, Admin) sont bien rendus.
+  await page.waitForSelector('#rotation-list .person-card:nth-child(5)', { timeout: 10_000 });
 }
 
 /** Déconnecte l'utilisateur courant via le menu header et attend le formulaire de login. */
