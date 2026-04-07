@@ -375,12 +375,29 @@ export class CroissantService {
   private async checkAndRotate(persons: Person[]) {
     const teamSnap = await getDoc(doc(this.db, 'teams', this.teamId));
     const lastRotationDate: string | null = teamSnap.data()?.['lastRotationDate'] ?? null;
-    // On compare toujours contre le lundi (offset=0) : le sessionOffset n'est qu'un
-    // décalage d'affichage dans la semaine, il ne doit pas influer sur le déclenchement
-    // de la rotation. Sans ça, changer l'offset peut déclencher une rotation parasite.
-    const mostRecentPastCroissantDay = getMostRecentPastCroissantDay(0);
+    const sessionOffset: number = teamSnap.data()?.['sessionOffset'] ?? 0;
 
-    if (lastRotationDate && lastRotationDate >= mostRecentPastCroissantDay) return;
+    // Calcule la vraie date de l'événement cette semaine : lundi de la semaine + sessionOffset.
+    // On tient compte de l'offset pour ne pas déclencher la rotation le jour J (l'événement
+    // n'est pas encore passé). La rotation ne se déclenche que le lendemain du jour de l'événement.
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayOfWeek = today.getDay();
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const thisMonday = new Date(today);
+    thisMonday.setDate(today.getDate() - daysSinceMonday);
+    const thisEventDate = new Date(thisMonday);
+    thisEventDate.setDate(thisMonday.getDate() + sessionOffset);
+    const thisEventDateStr = thisEventDate.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+
+    // L'événement n'est pas encore passé (aujourd'hui = jour J ou avant) : rien à faire.
+    if (todayStr <= thisEventDateStr) return;
+
+    // La rotation a déjà eu lieu pour cet événement.
+    if (lastRotationDate && lastRotationDate >= thisEventDateStr) return;
+
+    const mostRecentPastCroissantDay = thisEventDateStr;
 
     // Déplace le premier en bas de liste
     const updated = [...persons];
