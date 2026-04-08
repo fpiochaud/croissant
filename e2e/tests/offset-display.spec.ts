@@ -21,13 +21,13 @@ import { test, expect } from '@playwright/test';
 import { seedTestData, seedPersons } from '../helpers/seed';
 import { loginAsAdmin } from '../helpers/auth';
 import { personCard } from '../helpers/selectors';
-import { getMostRecentPastDay, getSlotLabel, getAbsentDateLabel } from '../fixtures/data';
+import { getMostRecentPastDay, getSlotLabel, getAbsentDateLabel, getThisWeekEventDate } from '../fixtures/data';
 
 const OFFSET = 1;
 
 test.describe('Affichage des dates avec sessionOffset > 0', () => {
   test.beforeEach(async () => {
-    await seedTestData({ lastRotationDate: getMostRecentPastDay(0), sessionOffset: OFFSET });
+    await seedTestData({ lastRotationDate: getThisWeekEventDate(OFFSET), sessionOffset: OFFSET });
   });
 
   test('la date d absence correspond au slot du remplaçant même avec un offset', async ({ page }) => {

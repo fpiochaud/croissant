@@ -13,7 +13,7 @@
 import { test, expect } from '@playwright/test';
 import { seedTestData, getPersonsFromDb, getTeamDoc } from '../helpers/seed';
 import { loginAsAdmin } from '../helpers/auth';
-import { getMostRecentPastDay, getPreviousRotationDate } from '../fixtures/data';
+import { getMostRecentPastDay, getPreviousRotationDate, getThisWeekEventDate } from '../fixtures/data';
 
 test.describe('Bug offset — rotation parasite', () => {
   test.beforeEach(async () => {
@@ -62,9 +62,11 @@ test.describe('Bug offset — rotation parasite', () => {
   });
 
   test('remettre le offset à 0 après un changement ne déclenche pas de rotation', async ({ page }) => {
-    // Offset déjà à 1 en base (changé lors d'une session précédente)
+    // Offset déjà à 1 en base (changé lors d'une session précédente).
+    // lastRotationDate = date de l'événement avec offset=1 (mardi de cette semaine)
+    // pour indiquer que la rotation a bien été faite pour cet événement.
     await seedTestData({
-      lastRotationDate: getMostRecentPastDay(0),
+      lastRotationDate: getThisWeekEventDate(1),
       sessionOffset: 1,
     });
 

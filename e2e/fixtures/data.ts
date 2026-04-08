@@ -41,6 +41,24 @@ export function getMostRecentPastDay(offset: number): string {
   return last.toISOString().split('T')[0];
 }
 
+/**
+ * Retourne la date ISO de l'événement de cette semaine (lundi + offset).
+ * Correspond à thisEventDateStr dans checkAndRotate().
+ * Utiliser comme lastRotationDate quand on seed avec sessionOffset > 0
+ * pour indiquer que la rotation de cette semaine a déjà eu lieu.
+ */
+export function getThisWeekEventDate(offset: number = 0): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dayOfWeek = today.getDay();
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const thisMonday = new Date(today);
+  thisMonday.setDate(today.getDate() - daysSinceMonday);
+  const eventDate = new Date(thisMonday);
+  eventDate.setDate(thisMonday.getDate() + offset);
+  return eventDate.toISOString().split('T')[0];
+}
+
 export interface TeamDocOverrides {
   lastRotationDate?: string;
   sessionOffset?: number;
