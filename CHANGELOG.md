@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.10.0 — 2026-04-08
+
+- feat: mise en place des slides
+
 ## v1.9.2 — 2026-04-07
 
 - fix: correction de la rotation.
