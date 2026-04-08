@@ -29,7 +29,7 @@ body.dark {
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; overflow-x: hidden; }
 
 /* HEADER */
-.header { background: var(--header-bg); padding: calc(var(--safe-top) + 20px) 20px 20px; position: relative; }
+.header { background: var(--header-bg); padding: calc(var(--safe-top) + 20px) 20px 20px; position: relative; flex-shrink: 0; }
 .header-deco { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .header-deco::after { content: '🥐'; position: absolute; right: -10px; top: -10px; font-size: 120px; opacity: 0.30; transform: rotate(-20deg); }
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -44,7 +44,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .next-badge { margin-left: auto; background: #4F46E5; border: 1px solid #6366F1; color: #fff; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; box-shadow: 0 2px 8px rgba(79,70,229,0.5); }
 
 /* SYNC STATUS */
-.sync-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-muted); }
+.sync-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
 .sync-status { display: flex; align-items: center; gap: 8px; }
 .sync-version { opacity: 0.6; }
 .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
@@ -54,15 +54,55 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 /* NAV */
-.nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+.nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .nav-btn { flex: 1; padding: 11px 4px 9px; background: none; border: none; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-hint); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .nav-btn .nav-icon { font-size: 18px; }
 .nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
+/* APP SHELL — layout fixe type mobile PWA */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* TABS VIEWPORT — zone de défilement horizontal des onglets */
+.tabs-viewport {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0; /* nécessaire pour que flex:1 fonctionne dans une colonne */
+  /* pan-y : le navigateur gère le scroll vertical nativement,
+     notre JS intercepte le mouvement horizontal sans preventDefault */
+  touch-action: pan-y;
+}
+
+.tabs-track {
+  display: flex;
+  height: 100%;
+  will-change: transform;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tabs-track.no-transition {
+  transition: none;
+}
+
+/* Les hôtes Angular sont inline par défaut — on force block pour que
+   width/height s'appliquent correctement */
+.tabs-track > * {
+  display: block;
+  flex: 0 0 100%;   /* 100% de la largeur du viewport (parent overflow:hidden) */
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* CONTENT */
-.content { padding-bottom: calc(var(--safe-bottom) + 16px); }
-.tab { display: none; }
-.tab.active { display: block; }
+.tab {
+  width: 100%;
+  padding-bottom: calc(var(--safe-bottom) + 16px);
+}
 .section-pad { padding: 16px 16px 0; }
 .sec-label { font-size: 12px; font-weight: 700; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; margin-top: 16px; }
 .sec-label:first-child { margin-top: 0; }

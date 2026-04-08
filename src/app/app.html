@@ -7,13 +7,28 @@
 }
 
 @if (croissant.authStatus() === 'authenticated') {
-  <croissant-header></croissant-header>
-  <croissant-sync-bar></croissant-sync-bar>
-  <croissant-navigation></croissant-navigation>
-  <croissant-rotation></croissant-rotation>
-  <croissant-remplacement></croissant-remplacement>
-  <croissant-historique></croissant-historique>
-  <croissant-rappels></croissant-rappels>
-  <croissant-parametres></croissant-parametres>
-  <croissant-modaux></croissant-modaux>
+  <div class="app-shell">
+    <croissant-header></croissant-header>
+    <croissant-sync-bar></croissant-sync-bar>
+    <croissant-navigation></croissant-navigation>
+
+    <div class="tabs-viewport"
+         #tabsViewport
+         (touchstart)="onTouchStart($event)"
+         (touchmove)="onTouchMove($event)"
+         (touchend)="onTouchEnd()"
+         (touchcancel)="onTouchEnd()">
+      <div class="tabs-track"
+           [class.no-transition]="isDragging() || noTransition()"
+           [style.transform]="trackTransform()">
+        <croissant-rotation></croissant-rotation>
+        <croissant-remplacement></croissant-remplacement>
+        <croissant-historique></croissant-historique>
+        <croissant-rappels></croissant-rappels>
+        <croissant-parametres></croissant-parametres>
+      </div>
+    </div>
+
+    <croissant-modaux></croissant-modaux>
+  </div>
 }
