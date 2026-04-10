@@ -435,7 +435,7 @@ export class CroissantService {
       timestamp: serverTimestamp(),
     });
 
-    // Purge de l'historique : on ne conserve que les 2 derniers mois
+    // Purge de l'historique : on ne conserve que les 6 derniers mois
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
     const oldHistorySnap = await getDocs(
