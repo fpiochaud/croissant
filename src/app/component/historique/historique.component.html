@@ -2,12 +2,23 @@
 	<div class="section-pad">
 		<div class="sec-label">Séances passées</div>
 		<div id="history-list">
-			<div *ngIf="history().length === 0" class="history-empty">Aucun événement pour l'instant.</div>
-			<div *ngFor="let event of history()" class="history-row">
-				<div class="history-date">{{ event.date }}</div>
-				<div class="history-type">{{ event.type }}</div>
-				<div class="history-details">{{ event.details?.text || '' }}</div>
-			</div>
+			@if (history().length === 0) {
+				<div class="history-empty">Aucun événement pour l'instant.</div>
+			}
+			@for (event of history(); track $index) {
+				<div class="history-row" [class.history-passage]="event.type === 'Passage'" [class.history-absence]="event.type === 'Absence'">
+					<div class="history-icon">{{ event.type === 'Passage' ? '🥐' : '🔄' }}</div>
+					<div class="history-body">
+						<div class="history-main">{{ event.details?.text || '' }}</div>
+						<div class="history-meta">
+							<span class="history-date">{{ event.date }}</span>
+							@if (event.details?.performedBy) {
+								<span class="history-by">— par {{ event.details.performedBy }}</span>
+							}
+						</div>
+					</div>
+				</div>
+			}
 		</div>
 	</div>
 </div>

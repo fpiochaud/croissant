@@ -60,6 +60,7 @@ export class RemplacementComponent {
           text: preview.replacement
             ? `${preview.absent.name} remplacé(e) par ${preview.replacement.name}`
             : `${preview.absent.name} absent(e), pas de remplaçant disponible`,
+          performedBy: this.croissant.currentUserName(),
         },
       });
       this.reset();
@@ -81,7 +82,10 @@ export class RemplacementComponent {
     this.croissant.addHistory({
       date: new Date().toLocaleString(),
       type: 'Absence',
-      details: { text: `${absent.name} remplacé(e) manuellement par ${replacement.name}` },
+      details: {
+        text: `${absent.name} remplacé(e) manuellement par ${replacement.name}`,
+        performedBy: this.croissant.currentUserName(),
+      },
     });
     this.reset();
     this.croissant.openTab('rotation');

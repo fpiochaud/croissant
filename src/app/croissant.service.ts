@@ -108,6 +108,13 @@ export class CroissantService {
   authStatus  = signal<'loading' | 'authenticated' | 'unauthenticated' | 'blocked'>('loading');
   authError   = signal<string | null>(null);
 
+  /** Nom d'affichage de l'utilisateur connecté (depuis la liste des membres si dispo, sinon email). */
+  currentUserName = () => {
+    const email = this.currentUser()?.email;
+    if (!email) return 'Inconnu';
+    return this.state().persons.find(p => p.email === email)?.name ?? email;
+  };
+
   constructor() {
     this.app  = initializeApp(environment.firebase);
     this.db   = getFirestore(this.app);
@@ -417,6 +424,16 @@ export class CroissantService {
     });
     batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: mostRecentPastCroissantDay, sessionOffset: 0 });
     await batch.commit();
+
+    // Enregistre le passage dans l'historique
+    const eventDateLabel = thisEventDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
+    const carrier = first.status === 'absent' ? (first.replacedBy ?? first.name) : first.name;
+    await addDoc(collection(this.db, 'teams', this.teamId, 'history'), {
+      date: eventDateLabel,
+      type: 'Passage',
+      details: { text: `${carrier} a apporté les croissants` },
+      timestamp: serverTimestamp(),
+    });
 
     // Purge de l'historique : on ne conserve que les 2 derniers mois
     const sixMonthsAgo = new Date();

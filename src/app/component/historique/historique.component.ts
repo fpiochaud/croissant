@@ -1,10 +1,9 @@
 import { Component, computed } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
 import { CroissantService } from '../../croissant.service';
 
 @Component({
   selector: 'croissant-historique',
-  imports: [NgFor, NgIf],
+  imports: [],
   templateUrl: './historique.component.html',
   styleUrl: './historique.component.css',
 })
