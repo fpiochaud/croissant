@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.11.0 — 2026-04-14
+
+- fix: rotation + historique
+- feat: ajout des jour de passage dans l'historique
+
 ## v1.10.0 — 2026-04-08
 
 - feat: mise en place des slides
