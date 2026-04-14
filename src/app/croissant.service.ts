@@ -256,7 +256,11 @@ export class CroissantService {
       (snap) => {
         const persons = snap.docs.map(d => ({ id: d.id, ...d.data() } as Person));
         this.state.update(s => ({ ...s, persons }));
-        if (!this.rotationChecked && persons.length > 0) {
+        // Attendre un snapshot confirmé par le serveur avant de déclencher la
+        // rotation : addPersonFromEmail() en amont peut amorcer le cache local
+        // avec un seul document (résultat d'un where filtré), ce qui ferait
+        // tourner checkAndRotate sur une liste partielle.
+        if (!this.rotationChecked && persons.length > 0 && !snap.metadata.fromCache) {
           this.rotationChecked = true;
           this.checkAndRotate(persons);
         }
