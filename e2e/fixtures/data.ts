@@ -26,16 +26,8 @@ export const TEST_PERSONS = [
   { id: 'admin',   name: 'Admin',   initials: 'AD', color: 'c5', status: 'ok' as const, rank: 4, email: 'admin@test.com'   },
 ];
 
-/** Formate une Date en YYYY-MM-DD en heure locale (identique à toLocalDateStr du service). */
-function toLocalDateStr(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
 /**
- * Retourne la date locale du jour de croissants le plus récent passé.
+ * Retourne la date ISO du jour de croissants le plus récent passé.
  * Même logique que getMostRecentPastCroissantDay() dans le service.
  */
 export function getMostRecentPastDay(offset: number): string {
@@ -46,11 +38,11 @@ export function getMostRecentPastDay(offset: number): string {
   const daysBack = day === targetDow ? 7 : (day > targetDow ? day - targetDow : 7 - targetDow + day);
   const last = new Date(today);
   last.setDate(today.getDate() - daysBack);
-  return toLocalDateStr(last);
+  return last.toISOString().split('T')[0];
 }
 
 /**
- * Retourne la date locale de l'événement de cette semaine (lundi + offset).
+ * Retourne la date ISO de l'événement de cette semaine (lundi + offset).
  * Correspond à thisEventDateStr dans checkAndRotate().
  * Utiliser comme lastRotationDate quand on seed avec sessionOffset > 0
  * pour indiquer que la rotation de cette semaine a déjà eu lieu.
@@ -64,7 +56,7 @@ export function getThisWeekEventDate(offset: number = 0): string {
   thisMonday.setDate(today.getDate() - daysSinceMonday);
   const eventDate = new Date(thisMonday);
   eventDate.setDate(thisMonday.getDate() + offset);
-  return toLocalDateStr(eventDate);
+  return eventDate.toISOString().split('T')[0];
 }
 
 export interface TeamDocOverrides {
@@ -121,14 +113,14 @@ export function getLastMondayLabel(): string {
 }
 
 /**
- * Retourne la date locale du lundi précédant le dernier lundi passé.
+ * Retourne la date ISO du lundi précédant le dernier lundi passé.
  * Utiliser comme lastRotationDate pour déclencher une rotation lors du chargement.
  */
 export function getPreviousRotationDate(): string {
   const lastMonday = getMostRecentPastDay(0);
-  const d = new Date(lastMonday + 'T00:00:00');
+  const d = new Date(lastMonday);
   d.setDate(d.getDate() - 7);
-  return toLocalDateStr(d);
+  return d.toISOString().split('T')[0];
 }
 
 export function makeTeamDoc(overrides: TeamDocOverrides = {}) {
