@@ -385,13 +385,6 @@ export class CroissantService {
     updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), { status: 'ok' });
   }
 
-  private toLocalDateStr(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
   private async checkAndRotate(persons: Person[]) {
     // getDocFromServer garantit de lire lastRotationDate depuis le serveur,
     // sans risque de lire un cache potentiellement antérieur à la dernière rotation.
@@ -402,7 +395,6 @@ export class CroissantService {
     // Calcule la vraie date de l'événement cette semaine : lundi de la semaine + sessionOffset.
     // On tient compte de l'offset pour ne pas déclencher la rotation le jour J (l'événement
     // n'est pas encore passé). La rotation ne se déclenche que le lendemain du jour de l'événement.
-    // Les dates sont en heure locale (et non UTC) pour éviter les décalages d'un jour en CEST.
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dayOfWeek = today.getDay();
@@ -411,8 +403,8 @@ export class CroissantService {
     thisMonday.setDate(today.getDate() - daysSinceMonday);
     const thisEventDate = new Date(thisMonday);
     thisEventDate.setDate(thisMonday.getDate() + sessionOffset);
-    const thisEventDateStr = this.toLocalDateStr(thisEventDate);
-    const todayStr = this.toLocalDateStr(today);
+    const thisEventDateStr = thisEventDate.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
 
     // L'événement n'est pas encore passé (aujourd'hui = jour J ou avant) : rien à faire.
     if (todayStr <= thisEventDateStr) return;
