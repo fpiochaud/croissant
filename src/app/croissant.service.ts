@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import {
   getFirestore, doc, collection,
-  onSnapshot, setDoc, updateDoc, addDoc, deleteDoc, getDoc, getDocs,
+  onSnapshot, setDoc, updateDoc, addDoc, deleteDoc, getDoc, getDocFromServer, getDocs,
   orderBy, query, where, limit, serverTimestamp, writeBatch, Firestore,
   connectFirestoreEmulator,
 } from 'firebase/firestore';
@@ -241,7 +241,9 @@ export class CroissantService {
           rules:         d['rules']         ?? s.rules,
           sessionOffset: d['sessionOffset'] ?? 0,
         }));
-      } else {
+      } else if (!snap.metadata.fromCache) {
+        // N'initialiser le document que si le serveur confirme son absence,
+        // pour éviter d'écraser lastRotationDate sur un snapshot cache vide.
         setDoc(teamDoc, {
           teamName: 'Mon équipe',
           currentIndex: 0,
@@ -383,14 +385,24 @@ export class CroissantService {
     updateDoc(doc(this.db, 'teams', this.teamId, 'persons', personId), { status: 'ok' });
   }
 
+  private toLocalDateStr(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
   private async checkAndRotate(persons: Person[]) {
-    const teamSnap = await getDoc(doc(this.db, 'teams', this.teamId));
+    // getDocFromServer garantit de lire lastRotationDate depuis le serveur,
+    // sans risque de lire un cache potentiellement antérieur à la dernière rotation.
+    const teamSnap = await getDocFromServer(doc(this.db, 'teams', this.teamId));
     const lastRotationDate: string | null = teamSnap.data()?.['lastRotationDate'] ?? null;
     const sessionOffset: number = teamSnap.data()?.['sessionOffset'] ?? 0;
 
     // Calcule la vraie date de l'événement cette semaine : lundi de la semaine + sessionOffset.
     // On tient compte de l'offset pour ne pas déclencher la rotation le jour J (l'événement
     // n'est pas encore passé). La rotation ne se déclenche que le lendemain du jour de l'événement.
+    // Les dates sont en heure locale (et non UTC) pour éviter les décalages d'un jour en CEST.
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dayOfWeek = today.getDay();
@@ -399,8 +411,8 @@ export class CroissantService {
     thisMonday.setDate(today.getDate() - daysSinceMonday);
     const thisEventDate = new Date(thisMonday);
     thisEventDate.setDate(thisMonday.getDate() + sessionOffset);
-    const thisEventDateStr = thisEventDate.toISOString().split('T')[0];
-    const todayStr = today.toISOString().split('T')[0];
+    const thisEventDateStr = this.toLocalDateStr(thisEventDate);
+    const todayStr = this.toLocalDateStr(today);
 
     // L'événement n'est pas encore passé (aujourd'hui = jour J ou avant) : rien à faire.
     if (todayStr <= thisEventDateStr) return;
