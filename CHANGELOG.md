@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.11.2 — 2026-04-23
+
+- fix: correction des rotations
+
 ## v1.11.1 — 2026-04-23
 
 - fix: double rotation lie au cache
