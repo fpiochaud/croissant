@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.11.3 — 2026-05-24
+
+- fix: correction de l'offset
+
 ## v1.11.2 — 2026-04-23
 
 - fix: correction des rotations
