@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.11.5 — 2026-05-26
+
+- fix: autorefresh de l'application
+
 ## v1.11.4 — 2026-05-26
 
 - fix: rotation retour arriere
