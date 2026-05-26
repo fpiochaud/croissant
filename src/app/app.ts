@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CroissantService } from './croissant.service';
+import { environment } from '../environments/environment';
 import { LoginComponent } from './component/login/login.component';
 import { HeaderComponent } from './component/header/header.component';
 import { SyncBarComponent } from './component/sync-bar/sync-bar.component';
@@ -10,6 +11,20 @@ import { HistoriqueComponent } from './component/historique/historique.component
 import { RappelsComponent } from './component/rappels/rappels.component';
 import { ParametresComponent } from './component/parametres/parametres.component';
 import { ModauxComponent } from './component/modaux/modaux.component';
+
+async function checkForAppUpdate(): Promise<void> {
+  if (!environment.production) return;
+  try {
+    const res = await fetch('/index.html', { cache: 'no-cache' });
+    if (!res.ok) return;
+    const html = await res.text();
+    const serverScripts = [...html.matchAll(/src="([^"]+\.js)"/g)].map(m => m[1]);
+    if (serverScripts.length === 0) return;
+    const loadedSrcs = Array.from(document.scripts).map(s => s.src);
+    const isStale = serverScripts.some(src => !loadedSrcs.some(loaded => loaded.endsWith(src)));
+    if (isStale) window.location.reload();
+  } catch { /* réseau indisponible, on ignore */ }
+}
 
 const TABS = ['rotation', 'remplacement', 'historique', 'rappels', 'params'] as const;
 type Tab = typeof TABS[number];
@@ -26,6 +41,8 @@ type Tab = typeof TABS[number];
 })
 export class App {
   croissant = inject(CroissantService);
+
+  constructor() { checkForAppUpdate(); }
 
   private touchStartX  = 0;
   private touchStartY  = 0;
