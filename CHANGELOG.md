@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.11.4 — 2026-05-26
+
+- fix: rotation retour arriere
+
 ## v1.11.3 — 2026-05-24
 
 - fix: correction de l'offset
