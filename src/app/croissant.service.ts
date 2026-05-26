@@ -54,6 +54,18 @@ export function getNextCroissantDay(offset: number = 0): Date {
   return next;
 }
 
+// Retourne la date du jour de croissants le plus récent PASSÉ
+function getMostRecentPastCroissantDay(offset: number = 0): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const targetDow = 1 + offset;
+  const day = today.getDay();
+  const daysBack = day === targetDow ? 7 : (day > targetDow ? day - targetDow : 7 - targetDow + day);
+  const last = new Date(today);
+  last.setDate(today.getDate() - daysBack);
+  return last.toISOString().split('T')[0];
+}
+
 // Compatibilité
 export function getNextMonday(): Date { return getNextCroissantDay(0); }
 
@@ -392,16 +404,13 @@ export class CroissantService {
     const thisEventDate = new Date(thisMonday);
     thisEventDate.setDate(thisMonday.getDate() + sessionOffset);
     const thisEventDateStr = thisEventDate.toISOString().split('T')[0];
-    const thisMondayStr = thisMonday.toISOString().split('T')[0];
     const todayStr = today.toISOString().split('T')[0];
 
     // L'événement n'est pas encore passé (aujourd'hui = jour J ou avant) : rien à faire.
     if (todayStr <= thisEventDateStr) return;
 
-    // Une rotation a déjà eu lieu cette semaine (on ne tourne qu'une fois par semaine,
-    // même si l'offset a été modifié après coup, ce qui déplacerait thisEventDateStr
-    // dans le passé et déclencherait une fausse rotation).
-    if (lastRotationDate && lastRotationDate >= thisMondayStr) return;
+    // La rotation a déjà eu lieu pour cet événement.
+    if (lastRotationDate && lastRotationDate >= thisEventDateStr) return;
 
     const mostRecentPastCroissantDay = thisEventDateStr;
 
