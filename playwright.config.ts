@@ -19,21 +19,18 @@ export default defineConfig({
   ],
   webServer: [
     {
-      // Émulateurs Firebase Auth + Firestore
       command: 'npx firebase emulators:start --only auth,firestore --project demo-croissant',
       url: 'http://localhost:9099',
-      reuseExistingServer: !process.env['CI'],
-      timeout: 30_000,
+      reuseExistingServer: true,
+      timeout: 60_000,
     },
     {
-      // En CI : app pré-buildée servie par serve (rapide)
-      // En local : ng serve avec hot-reload
-      command: process.env['CI'] || process.env['USE_STATIC_SERVE']
+      command: process.env['USE_STATIC_SERVE']
         ? 'npx serve dist/croissant-angular/browser -l 4201 --single'
         : 'npx ng serve --configuration e2e --port 4201',
       url: 'http://localhost:4201',
-      reuseExistingServer: !process.env['CI'],
-      timeout: process.env['CI'] || process.env['USE_STATIC_SERVE'] ? 15_000 : 120_000,
+      reuseExistingServer: true,
+      timeout: process.env['USE_STATIC_SERVE'] ? 30_000 : 120_000,
     },
   ],
 });
