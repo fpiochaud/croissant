@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.12.0 — 2026-06-07
+
+- feat: upgrade angular
+
 ## v1.11.5 — 2026-05-26
 
 - fix: autorefresh de l'application
