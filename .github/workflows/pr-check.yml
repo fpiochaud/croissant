@@ -34,7 +34,7 @@ jobs:
           restore-keys: firebase-emulators-
 
       - name: Télécharger les binaires des émulateurs Firebase
-        run: npx firebase setup:emulators:firestore
+        run: npx firebase setup:emulators:firestore && npx firebase setup:emulators:auth
 
       - name: Installer Chromium (Playwright)
         run: npx playwright install --with-deps chromium
