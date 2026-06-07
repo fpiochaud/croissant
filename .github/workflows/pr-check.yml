@@ -42,8 +42,17 @@ jobs:
       - name: Build Angular (configuration e2e)
         run: npx ng build --configuration e2e
 
+      - name: Démarrer les émulateurs Firebase
+        run: npx firebase emulators:start --only auth,firestore --project demo-croissant &
+
+      - name: Démarrer le serveur Angular
+        run: npx serve dist/croissant-angular/browser -l 4201 --single &
+
+      - name: Attendre les serveurs
+        run: npx wait-on http://localhost:9099 http://localhost:4201 --timeout 60000
+
       - name: Lancer les tests e2e
-        run: npm run e2e
+        run: npx playwright test
 
       - name: Upload rapport Playwright (en cas d'échec)
         if: failure()
