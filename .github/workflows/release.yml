@@ -21,7 +21,7 @@ jobs:
       - name: Setup Java (requis pour l'émulateur Firestore)
         uses: actions/setup-java@v5
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Installer les dépendances
