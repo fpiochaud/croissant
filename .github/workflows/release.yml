@@ -27,6 +27,16 @@ jobs:
       - name: Installer les dépendances
         run: npm install
 
+      - name: Cache binaires émulateurs Firebase
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('package-lock.json') }}
+          restore-keys: firebase-emulators-
+
+      - name: Télécharger les binaires des émulateurs Firebase
+        run: npx firebase setup:emulators:firestore
+
       - name: Installer Chromium (Playwright)
         run: npx playwright install --with-deps chromium
 
