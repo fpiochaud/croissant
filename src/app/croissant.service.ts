@@ -141,32 +141,28 @@ export class CroissantService {
         return;
       }
 
-      // Vérifier si l'utilisateur est en attente de suppression
-      if (user.email) {
-        const deletionSnap = await getDoc(doc(this.db, 'pendingDeletions', encodeEmail(user.email)));
-        if (deletionSnap.exists()) {
-          await signOut(this.auth);
-          this.authStatus.set('blocked');
-          this.authError.set('Vos accès ont été supprimés. Veuillez contacter un administrateur.');
-          return;
-        }
+      // Vérifier blocage + lire le profil en parallèle
+      const [deletionSnap, userSnap] = await Promise.all([
+        user.email
+          ? getDoc(doc(this.db, 'pendingDeletions', encodeEmail(user.email)))
+          : Promise.resolve(null),
+        getDoc(doc(this.db, 'users', user.uid)),
+      ]);
+
+      if (deletionSnap?.exists()) {
+        await signOut(this.auth);
+        this.authStatus.set('blocked');
+        this.authError.set('Vos accès ont été supprimés. Veuillez contacter un administrateur.');
+        return;
       }
 
-      // Créer ou lire le profil utilisateur
-      const userRef  = doc(this.db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
+      const userRef = doc(this.db, 'users', user.uid);
       let role = 'member';
 
       if (!userSnap.exists()) {
         await setDoc(userRef, { email: user.email, role: 'member', notifPrefs: { eve: true, morning: true, swap: true }, createdAt: serverTimestamp() });
       } else {
         role = userSnap.data()?.['role'] ?? 'member';
-      }
-
-      try {
-        await this.addPersonFromEmail(user.email ?? '');
-      } catch (e) {
-        console.error('[auth] addPersonFromEmail failed:', e);
       }
 
       this.currentUser.set(user);
@@ -178,6 +174,11 @@ export class CroissantService {
         this.initFirestoreListeners(user.uid);
         this.autoInitFCM();
       }
+
+      // Création du membre en arrière-plan (nouveaux utilisateurs uniquement)
+      this.addPersonFromEmail(user.email ?? '').catch(e =>
+        console.error('[auth] addPersonFromEmail failed:', e)
+      );
     });
   }
 
