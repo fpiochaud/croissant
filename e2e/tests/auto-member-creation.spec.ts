@@ -51,9 +51,12 @@ test.describe('Création automatique du membre à la connexion', () => {
 
     await loginAs(page, NEW_USER.email, NEW_USER.password);
 
-    // La personne doit être créée lors de cette connexion
+    // La personne doit être créée lors de cette connexion (en arrière-plan)
+    await expect.poll(
+      async () => (await getPersonsByEmail(NEW_USER.email)).length,
+      { timeout: 10_000 },
+    ).toBe(1);
     const after = await getPersonsByEmail(NEW_USER.email);
-    expect(after).toHaveLength(1);
     expect(after[0]['email']).toBe(NEW_USER.email);
   });
 
@@ -66,16 +69,23 @@ test.describe('Création automatique du membre à la connexion', () => {
 
     await loginAs(page, NEW_USER.email, NEW_USER.password);
 
+    // addPersonFromEmail s'exécute en arrière-plan après authStatus('authenticated')
+    await expect.poll(
+      async () => (await getPersonsByEmail(NEW_USER.email)).length,
+      { timeout: 10_000 },
+    ).toBe(1);
     const after = await getPersonsByEmail(NEW_USER.email);
-    expect(after).toHaveLength(1);
     expect(after[0]['email']).toBe(NEW_USER.email);
   });
 
   test('le nom et les initiales sont dérivés de l email', async ({ page }) => {
     await loginAs(page, NEW_USER.email, NEW_USER.password);
 
+    await expect.poll(
+      async () => (await getPersonsByEmail(NEW_USER.email)).length,
+      { timeout: 10_000 },
+    ).toBe(1);
     const persons = await getPersonsByEmail(NEW_USER.email);
-    expect(persons).toHaveLength(1);
     // leoncamet@outlook.com → prefix sans séparateur → "Leoncamet" / "LE"
     expect(persons[0]['name']).toBe('Leoncamet');
     expect(persons[0]['initials']).toBe('LE');
