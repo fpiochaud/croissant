@@ -36,6 +36,6 @@
     "prettier": "^3.8.4",
     "serve": "^14.2.6",
     "typescript": "~6.0.0",
-    "vitest": "^4.0.8"
+    "vitest": "^4.1.9"
   }
 }
