@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.12.1 — 2026-06-15
+
+- fix: chargement de croissant
+
 ## v1.12.0 — 2026-06-07
 
 - feat: upgrade angular
