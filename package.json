@@ -33,7 +33,7 @@
     "firebase-admin": "^13.10.0",
     "firebase-tools": "^15.19.1",
     "jsdom": "^29.1.1",
-    "prettier": "^3.8.1",
+    "prettier": "^3.8.4",
     "serve": "^14.2.6",
     "typescript": "~6.0.0",
     "vitest": "^4.0.8"
