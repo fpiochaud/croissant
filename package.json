@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@angular/build": "^22.0.0",
-    "@angular/cli": "^22.0.0",
+    "@angular/cli": "^22.0.1",
     "@angular/compiler-cli": "^22.0.0",
     "@playwright/test": "^1.58.2",
     "firebase-admin": "^13.10.0",
