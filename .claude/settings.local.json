@@ -62,7 +62,14 @@
       "Bash(curl -s http://localhost:4201)",
       "Bash(timeout 60 bash -c 'until curl -s http://localhost:4201 > /dev/null 2>&1; do sleep 2; done && echo \"app ready\"')",
       "Bash(xargs cat)",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(npx ng *)",
+      "Bash(git rm *)",
+      "Bash(npm run *)",
+      "Bash(timeout 30 npx firebase emulators:start --only auth,firestore --project demo-croissant)",
+      "Bash(java -version)",
+      "Bash(python3 -c \"import yaml; yaml.safe_load\\(open\\('/git/croissant/.github/workflows/pr-check.yml'\\)\\)\")",
+      "Bash(python3 -c \"import yaml; yaml.safe_load\\(open\\('/git/croissant/.github/workflows/release.yml'\\)\\)\")"
     ]
   }
 }

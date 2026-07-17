@@ -12,20 +12,13 @@ import {
   onAuthStateChanged, Auth, User, connectAuthEmulator,
 } from 'firebase/auth';
 import { environment } from '../environments/environment';
+import {
+  Person, getNextCroissantDay, computeEventDate, shouldRotate, rotateOnce, eventDateLabel,
+  reorderForReplacement, computeAbsentDates, derivePersonFromEmail,
+} from './rotation-logic';
 
-export interface Person {
-  id: string;
-  name: string;
-  initials: string;
-  color: string;
-  status: 'ok' | 'absent' | 'catch';
-  rank?: number;
-  email?: string;
-  replacedBy?: string | null;
-  absentDate?: string | null;
-  catchupDate?: string | null;
-  promoted?: boolean | null;
-}
+export type { Person };
+export { getNextCroissantDay };
 
 export interface AppState {
   persons: Person[];
@@ -41,33 +34,6 @@ export interface AppState {
 function encodeEmail(email: string): string {
   return email.toLowerCase().replace('@', '_at_').replace(/\./g, '_dot_');
 }
-
-// Retourne la date du prochain lundi (ou aujourd'hui si lundi) + offset jours
-export function getNextCroissantDay(offset: number = 0): Date {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const day = today.getDay();
-  // Nombre de jours jusqu'au prochain lundi (0 si on est lundi)
-  const daysUntilMonday = day === 1 ? 0 : (day === 0 ? 1 : 8 - day);
-  const next = new Date(today);
-  next.setDate(today.getDate() + daysUntilMonday + offset);
-  return next;
-}
-
-// Retourne la date du jour de croissants le plus récent PASSÉ
-function getMostRecentPastCroissantDay(offset: number = 0): string {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const targetDow = 1 + offset;
-  const day = today.getDay();
-  const daysBack = day === targetDow ? 7 : (day > targetDow ? day - targetDow : 7 - targetDow + day);
-  const last = new Date(today);
-  last.setDate(today.getDate() - daysBack);
-  return last.toISOString().split('T')[0];
-}
-
-// Compatibilité
-export function getNextMonday(): Date { return getNextCroissantDay(0); }
 
 @Injectable({ providedIn: 'root' })
 export class CroissantService {
@@ -330,18 +296,9 @@ export class CroissantService {
   }
 
   setPersonAbsent(personId: string, replacedBy?: string) {
-    // La date d'absence = date prévue de la personne selon son rang actuel
     const persons = this.state().persons;
     const idx = persons.findIndex(p => p.id === personId);
-    // L'offset ne s'applique qu'au slot 0 (décalage ponctuel de la semaine en cours),
-    // comme dans personsWithDates. Les slots suivants restent sur le lundi de base.
-    const absentDate = new Date(getNextCroissantDay(0));
-    absentDate.setDate(absentDate.getDate() + idx * 7 + (idx === 0 ? this.state().sessionOffset : 0));
-    const absentDateLabel = absentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-
-    const catchupDateObj = new Date(absentDate);
-    catchupDateObj.setDate(catchupDateObj.getDate() + 7);
-    const catchupDateLabel = catchupDateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    const { absentDateLabel, catchupDateLabel } = computeAbsentDates(idx, this.state().sessionOffset);
 
     this.state.update(s => ({
       ...s,
@@ -356,16 +313,8 @@ export class CroissantService {
 
   // Déplace le remplaçant juste devant l'absent, quel que soit son rang dans la liste.
   promoteReplacement(absentId: string, replacementId: string) {
-    const persons = [...this.state().persons];
-    const absentIdx      = persons.findIndex(p => p.id === absentId);
-    const replacementIdx = persons.findIndex(p => p.id === replacementId);
-
-    if (absentIdx === -1 || replacementIdx === -1) return;
-    // Le remplaçant est déjà devant l'absent : rien à faire
-    if (replacementIdx <= absentIdx) return;
-
-    const [replacement] = persons.splice(replacementIdx, 1);
-    persons.splice(absentIdx, 0, replacement); // insère juste devant l'absent
+    const persons = reorderForReplacement(this.state().persons, absentId, replacementId);
+    if (!persons) return;
 
     this.state.update(s => ({ ...s, persons: persons.map((p, i) => ({ ...p, rank: i })) }));
 
@@ -393,54 +342,30 @@ export class CroissantService {
     const lastRotationDate: string | null = teamSnap.data()?.['lastRotationDate'] ?? null;
     const sessionOffset: number = teamSnap.data()?.['sessionOffset'] ?? 0;
 
-    // Calcule la vraie date de l'événement cette semaine : lundi de la semaine + sessionOffset.
-    // On tient compte de l'offset pour ne pas déclencher la rotation le jour J (l'événement
-    // n'est pas encore passé). La rotation ne se déclenche que le lendemain du jour de l'événement.
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dayOfWeek = today.getDay();
-    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const thisMonday = new Date(today);
-    thisMonday.setDate(today.getDate() - daysSinceMonday);
-    const thisEventDate = new Date(thisMonday);
-    thisEventDate.setDate(thisMonday.getDate() + sessionOffset);
-    const thisEventDateStr = thisEventDate.toISOString().split('T')[0];
-    const todayStr = today.toISOString().split('T')[0];
+    const { thisEventDate, thisEventDateStr, todayStr } = computeEventDate(sessionOffset);
+    if (!shouldRotate(todayStr, thisEventDateStr, lastRotationDate)) return;
 
-    // L'événement n'est pas encore passé (aujourd'hui = jour J ou avant) : rien à faire.
-    if (todayStr <= thisEventDateStr) return;
-
-    // La rotation a déjà eu lieu pour cet événement.
-    if (lastRotationDate && lastRotationDate >= thisEventDateStr) return;
-
-    const mostRecentPastCroissantDay = thisEventDateStr;
-
-    // Déplace le premier en bas de liste
-    const updated = [...persons];
-    const [first] = updated.splice(0, 1);
-    updated.push(first);
+    const { updated, carrierName } = rotateOnce(persons);
 
     const batch = writeBatch(this.db);
     updated.forEach((p, i) => {
       const update: any = { rank: i };
-      // Seul le nouveau premier (rang 0) passe en rattrapage s'il était absent.
-      // Les autres absents (rang >= 1) gardent leur statut ⛔ : ce n'est pas encore leur tour.
-      if (i === 0 && p.status === 'absent') {
+      // rotateOnce() ne convertit en rattrapage que le nouveau premier (rang 0) :
+      // les autres absents gardent leur statut ⛔, ce n'est pas encore leur tour.
+      if (i === 0 && p.status === 'catch') {
         update.status = 'catch';
         update.replacedBy = null;
       }
       batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), update);
     });
-    batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: mostRecentPastCroissantDay, sessionOffset: 0 });
+    batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: thisEventDateStr, sessionOffset: 0 });
     await batch.commit();
 
     // Enregistre le passage dans l'historique
-    const eventDateLabel = thisEventDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
-    const carrier = first.status === 'absent' ? (first.replacedBy ?? first.name) : first.name;
     await addDoc(collection(this.db, 'teams', this.teamId, 'history'), {
-      date: eventDateLabel,
+      date: eventDateLabel(thisEventDate),
       type: 'Passage',
-      details: { text: `${carrier} a apporté les croissants` },
+      details: { text: `${carrierName} a apporté les croissants` },
       timestamp: serverTimestamp(),
     });
 
@@ -488,13 +413,7 @@ export class CroissantService {
     );
     if (!existing.empty) return;
 
-    // Dérive le nom et les initiales depuis l'email
-    const prefix    = email.split('@')[0];
-    const parts     = prefix.split(/[._-]/).filter(Boolean);
-    const name      = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
-    const initials  = parts.length >= 2
-      ? (parts[0][0] + parts[1][0]).toUpperCase()
-      : prefix.slice(0, 2).toUpperCase();
+    const { name, initials } = derivePersonFromEmail(email);
 
     // Rang = après le dernier de la liste
     const lastSnap = await getDocs(
