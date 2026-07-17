@@ -1,6 +1,7 @@
 import { Component, computed } from '@angular/core';
 import { NgFor, NgClass } from '@angular/common';
-import { CroissantService, Person, getNextCroissantDay } from '../../croissant.service';
+import { CroissantService, Person } from '../../croissant.service';
+import { computePersonsWithDates } from '../../rotation-logic';
 
 @Component({
   selector: 'croissant-rotation',
@@ -11,33 +12,9 @@ import { CroissantService, Person, getNextCroissantDay } from '../../croissant.s
 export class RotationComponent {
   persons = computed(() => this.croissant.state().persons);
 
-  personsWithDates = computed(() => {
-    const offset = this.croissant.state().sessionOffset;
-    const nextMonday = getNextCroissantDay(0);
-    const persons = this.persons();
-
-    // Calcul des dates brutes (un lundi par semaine, + offset uniquement pour le 1er)
-    // L'offset est un décalage ponctuel pour la semaine en cours (ex: jour férié),
-    // pas un changement permanent — les semaines suivantes restent sur le lundi.
-    const rawDates = persons.map((_, i) => {
-      const d = new Date(nextMonday);
-      d.setDate(d.getDate() + i * 7 + (i === 0 ? offset : 0));
-      return d;
-    });
-
-    return persons.map((person, index) => {
-      // Cascade récursive : remonter tous les absents consécutifs pour trouver
-      // le premier slot disponible. Exemple : [A(absent), B(absent), C] → C hérite
-      // du slot de A, pas du slot de B.
-      let slot = index;
-      while (slot > 0 && persons[slot - 1].status === 'absent' && !persons[slot - 1].replacedBy) {
-        slot--;
-      }
-      const date = rawDates[slot];
-      const label = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
-      return { ...person, dateLabel: label };
-    });
-  });
+  personsWithDates = computed(() =>
+    computePersonsWithDates(this.persons(), this.croissant.state().sessionOffset)
+  );
 
   constructor(public croissant: CroissantService) {}
 
