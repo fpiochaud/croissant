@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.13.0 — 2026-07-17
+
+- feat: update dependabot
+
 ## v1.12.1 — 2026-06-15
 
 - fix: chargement de croissant
