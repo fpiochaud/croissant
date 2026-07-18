@@ -23,8 +23,8 @@
     "@angular/core": "^22.0.2",
     "@angular/forms": "^22.0.7",
     "@angular/router": "^22.0.2",
-    "@angular/platform-browser": "^22.0.0",
-    "firebase": "^12.16.0",
+    "@angular/platform-browser": "^22.0.7",
+    "firebase": "^12.14.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
