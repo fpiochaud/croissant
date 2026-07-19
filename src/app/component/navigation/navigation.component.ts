@@ -11,7 +11,7 @@ export class NavigationComponent {
   croissant = inject(CroissantService);
   activeTab = this.croissant.activeTab;
 
-  openTab(tab: 'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params') {
+  openTab(tab: 'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params' | 'admin') {
     this.croissant.openTab(tab);
   }
 }

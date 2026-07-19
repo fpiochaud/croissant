@@ -32,7 +32,8 @@ service cloud.firestore {
 
     // ── Profils utilisateurs ───────────────────────────────────
     match /users/{uid} {
-      allow read, write: if isAuthenticated() && request.auth.uid == uid;
+      allow read: if isAuthenticated() && (request.auth.uid == uid || isAdmin());
+      allow write: if isAuthenticated() && request.auth.uid == uid;
     }
 
     // ── Notifications de remplacement en attente ──────────────

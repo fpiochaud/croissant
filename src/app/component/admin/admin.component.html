@@ -1,0 +1,33 @@
+<div class="tab" [class.active]="croissant.activeTab() === 'admin'" id="tab-admin">
+	<div class="section-pad">
+		<div class="sec-label">Utilisateurs ({{ rows().length }})</div>
+		<div id="admin-list">
+			@for (row of rows(); track row.id) {
+				<div class="person-card admin-card">
+					<div class="rank-badge" [ngClass]="row.color">{{row.initials}}</div>
+					<div class="person-info">
+						<div class="person-name">
+							{{row.name}}
+							@if (row.role === 'admin') {
+								<span class="admin-role-badge">Admin</span>
+							}
+						</div>
+						<div class="person-meta">
+							@if (row.hasAccount) {
+								<div>🕐 Dernière connexion : {{row.lastLoginLabel}}</div>
+								<div [class.version-stale]="row.isStaleVersion">
+									📦 Version chargée : {{row.appVersion ?? '—'}}
+									@if (row.isStaleVersion) {
+										<span title="Différente de la version actuelle ({{currentVersion}}) — possible souci de cache">⚠️</span>
+									}
+								</div>
+							} @else {
+								<div>Aucun compte associé</div>
+							}
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+</div>

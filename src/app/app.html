@@ -26,6 +26,9 @@
         <croissant-historique></croissant-historique>
         <croissant-rappels></croissant-rappels>
         <croissant-parametres></croissant-parametres>
+        @if (croissant.isAdmin()) {
+          <croissant-admin></croissant-admin>
+        }
       </div>
     </div>
 

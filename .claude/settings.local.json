@@ -81,7 +81,28 @@
       "Bash(timeout 170 npm run test:e2e)",
       "Bash(timeout 170 npm run test:all)",
       "Bash(xargs -I{} cat {})",
-      "Bash(timeout 60 npm run test:unit)"
+      "Bash(timeout 60 npm run test:unit)",
+      "Bash(gh auth *)",
+      "Bash(gh run *)",
+      "Bash(npx firebase-tools *)",
+      "Bash(npx tsc *)",
+      "Bash(npx playwright *)",
+      "Bash(npx firebase *)",
+      "Bash(ls -la ~/.config/configstore/firebase-tools.json 2>&1; npx firebase --version 2>&1 | tail -1)",
+      "Read(//home/franck/.config/configstore/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -sS -o /dev/null -w \"%{http_code}\\\\n\" --max-time 10 \"https://serviceusage.googleapis.com/v1/projects/croissant-593e5/services/firestore.googleapis.com\")",
+      "Bash(node -e \"console.log\\(process.version\\)\")",
+      "Bash(command -v nvm)",
+      "Read(//home/franck/.nvm/versions/**)",
+      "Bash(volta list *)",
+      "Bash(node -e ' *)",
+      "Bash(volta --version)",
+      "Bash(volta help *)",
+      "Bash(volta fetch *)",
+      "Bash(volta run *)",
+      "Bash(sed -i \"s/node-version: '22'/node-version: '24'/g\" .github/workflows/pr-check.yml .github/workflows/release.yml)",
+      "Bash(sed -i \"s/node-version: '20'/node-version: '24'/g\" .github/workflows/reminder-morning.yml .github/workflows/reminder-eve.yml)"
     ]
   }
 }

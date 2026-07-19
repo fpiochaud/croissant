@@ -10,6 +10,7 @@ import { RemplacementComponent } from './component/remplacement/remplacement.com
 import { HistoriqueComponent } from './component/historique/historique.component';
 import { RappelsComponent } from './component/rappels/rappels.component';
 import { ParametresComponent } from './component/parametres/parametres.component';
+import { AdminComponent } from './component/admin/admin.component';
 import { ModauxComponent } from './component/modaux/modaux.component';
 
 async function checkForAppUpdate(): Promise<void> {
@@ -26,15 +27,15 @@ async function checkForAppUpdate(): Promise<void> {
   } catch { /* réseau indisponible, on ignore */ }
 }
 
-const TABS = ['rotation', 'remplacement', 'historique', 'rappels', 'params'] as const;
-type Tab = typeof TABS[number];
+const BASE_TABS = ['rotation', 'remplacement', 'historique', 'rappels', 'params'] as const;
+type Tab = typeof BASE_TABS[number] | 'admin';
 
 @Component({
   selector: 'app-root',
   imports: [
     LoginComponent, HeaderComponent, SyncBarComponent, NavigationComponent,
     RotationComponent, RemplacementComponent, HistoriqueComponent,
-    RappelsComponent, ParametresComponent, ModauxComponent,
+    RappelsComponent, ParametresComponent, AdminComponent, ModauxComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -52,7 +53,13 @@ export class App {
   isDragging         = signal(false);
   noTransition       = signal(false);
 
-  private tabIndex = computed(() => TABS.indexOf(this.croissant.activeTab() as Tab));
+  // Ordre des onglets affichés — dépend du rôle (l'onglet admin n'existe que pour les admins),
+  // donc recalculé plutôt que constant pour garder les index de swipe cohérents avec le DOM.
+  private tabs = computed<Tab[]>(() =>
+    this.croissant.isAdmin() ? [...BASE_TABS, 'admin'] : [...BASE_TABS]
+  );
+
+  private tabIndex = computed(() => this.tabs().indexOf(this.croissant.activeTab() as Tab));
 
   trackTransform = computed(() =>
     `translateX(calc(${-this.tabIndex() * 100}% + ${this.dragOffset()}px))`
@@ -88,26 +95,27 @@ export class App {
     const offset    = this.dragOffset();
     const threshold = window.innerWidth * 0.2;
     const idx       = this.tabIndex();
+    const tabs      = this.tabs();
 
     this.isDragging.set(false);
     this.dragOffset.set(0);
 
     if (Math.abs(offset) >= threshold) {
       const nextIdx = offset < 0
-        ? (idx + 1) % TABS.length
-        : (idx - 1 + TABS.length) % TABS.length;
+        ? (idx + 1) % tabs.length
+        : (idx - 1 + tabs.length) % tabs.length;
 
-      const isWrap = (offset < 0 && idx === TABS.length - 1)
+      const isWrap = (offset < 0 && idx === tabs.length - 1)
                   || (offset > 0 && idx === 0);
 
       if (isWrap) {
         this.noTransition.set(true);
-        this.croissant.openTab(TABS[nextIdx]);
+        this.croissant.openTab(tabs[nextIdx]);
         requestAnimationFrame(() =>
           requestAnimationFrame(() => this.noTransition.set(false))
         );
       } else {
-        this.croissant.openTab(TABS[nextIdx]);
+        this.croissant.openTab(tabs[nextIdx]);
       }
     }
 
