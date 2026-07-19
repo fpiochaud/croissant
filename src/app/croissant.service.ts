@@ -12,6 +12,7 @@ import {
   onAuthStateChanged, Auth, User, connectAuthEmulator,
 } from 'firebase/auth';
 import { environment } from '../environments/environment';
+import { APP_VERSION } from '../version';
 import {
   Person, getNextCroissantDay, computeEventDate, shouldRotate, rotateOnce, eventDateLabel,
   reorderForReplacement, computeAbsentDates, derivePersonFromEmail,
@@ -19,6 +20,14 @@ import {
 
 export type { Person };
 export { getNextCroissantDay };
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  role: string;
+  lastLogin?: any;
+  appVersion?: string;
+}
 
 export interface AppState {
   persons: Person[];
@@ -44,6 +53,7 @@ export class CroissantService {
   private currentFcmToken: string | null = null;
   private teamId = environment.teamId;
   private listenersInitialized = false;
+  private adminListenersInitialized = false;
   private rotationChecked = false;
 
   state = signal<AppState>({
@@ -59,7 +69,8 @@ export class CroissantService {
 
   darkMode    = signal<boolean>(localStorage.getItem('darkMode') === 'true');
   syncStatus  = signal<'syncing' | 'online' | 'offline'>('syncing');
-  activeTab   = signal<'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params'>('rotation');
+  activeTab   = signal<'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params' | 'admin'>('rotation');
+  users       = signal<UserProfile[]>([]);
   showAddModal  = signal(false);
   showEditModal = signal(false);
   editPerson    = signal<Person | null>(null);
@@ -126,9 +137,13 @@ export class CroissantService {
       let role = 'member';
 
       if (!userSnap.exists()) {
-        await setDoc(userRef, { email: user.email, role: 'member', notifPrefs: { eve: true, morning: true, swap: true }, createdAt: serverTimestamp() });
+        await setDoc(userRef, {
+          email: user.email, role: 'member', notifPrefs: { eve: true, morning: true, swap: true },
+          createdAt: serverTimestamp(), lastLogin: serverTimestamp(), appVersion: APP_VERSION,
+        });
       } else {
         role = userSnap.data()?.['role'] ?? 'member';
+        await setDoc(userRef, { lastLogin: serverTimestamp(), appVersion: APP_VERSION }, { merge: true });
       }
 
       this.currentUser.set(user);
@@ -139,6 +154,11 @@ export class CroissantService {
         this.listenersInitialized = true;
         this.initFirestoreListeners(user.uid);
         this.autoInitFCM();
+      }
+
+      if (role === 'admin' && !this.adminListenersInitialized) {
+        this.adminListenersInitialized = true;
+        this.initAdminListeners();
       }
 
       // Création du membre en arrière-plan (nouveaux utilisateurs uniquement)
@@ -253,7 +273,14 @@ export class CroissantService {
     );
   }
 
-  openTab(tab: 'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params') {
+  private initAdminListeners() {
+    onSnapshot(collection(this.db, 'users'), (snap) => {
+      const users = snap.docs.map(d => ({ id: d.id, ...d.data() } as UserProfile));
+      this.users.set(users);
+    });
+  }
+
+  openTab(tab: 'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params' | 'admin') {
     this.activeTab.set(tab);
   }
 

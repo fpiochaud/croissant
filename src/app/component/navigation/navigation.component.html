@@ -4,4 +4,7 @@
 	<button class="nav-btn" data-testid="nav-historique" [class.active]="activeTab() === 'historique'" (click)="openTab('historique')"><span class="nav-icon">📅</span>Historique</button>
 	<button class="nav-btn" data-testid="nav-rappels" [class.active]="activeTab() === 'rappels'" (click)="openTab('rappels')"><span class="nav-icon">🔔</span>Rappels</button>
 	<button class="nav-btn" data-testid="nav-params" [class.active]="activeTab() === 'params'" (click)="openTab('params')"><span class="nav-icon">⚙️</span>Réglages</button>
+	@if (croissant.isAdmin()) {
+		<button class="nav-btn" data-testid="nav-admin" [class.active]="activeTab() === 'admin'" (click)="openTab('admin')"><span class="nav-icon">🛠️</span>Admin</button>
+	}
 </nav>
