@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.0 — 2026-07-19
+
+- feat!: Page d'administration
+
 ## v1.13.1 — 2026-07-18
 
 - fix: upgrade dependabot
