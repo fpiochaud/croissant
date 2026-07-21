@@ -8,6 +8,7 @@ export interface Person {
   color: string;
   status: 'ok' | 'absent' | 'catch';
   rank?: number;
+  orderBase?: number;
   email?: string;
   replacedBy?: string | null;
   absentDate?: string | null;

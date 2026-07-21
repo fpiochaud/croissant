@@ -102,7 +102,14 @@
       "Bash(volta fetch *)",
       "Bash(volta run *)",
       "Bash(sed -i \"s/node-version: '22'/node-version: '24'/g\" .github/workflows/pr-check.yml .github/workflows/release.yml)",
-      "Bash(sed -i \"s/node-version: '20'/node-version: '24'/g\" .github/workflows/reminder-morning.yml .github/workflows/reminder-eve.yml)"
+      "Bash(sed -i \"s/node-version: '20'/node-version: '24'/g\" .github/workflows/reminder-morning.yml .github/workflows/reminder-eve.yml)",
+      "Bash(git -C /git/croissant log --oneline -i --grep=\"admin\" -n 20)",
+      "Bash(git -C /git/croissant show eddf9265 --stat)",
+      "Bash(xargs -I{} sh -c 'echo ==={}===; cat {}')",
+      "Bash(xargs ls -la)",
+      "Bash(find / -iname \"croissant.service.spec.ts\" -not -path \"*/node_modules/*\")",
+      "Bash(find / -iname \"admin.component.spec.ts\" -not -path \"*/node_modules/*\")",
+      "Bash(node --check /git/croissant/.github/scripts/delete-users.js)"
     ]
   }
 }

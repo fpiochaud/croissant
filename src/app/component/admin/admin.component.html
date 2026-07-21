@@ -3,7 +3,17 @@
 		<div class="sec-label">Utilisateurs ({{ rows().length }})</div>
 		<div id="admin-list">
 			@for (row of rows(); track row.id) {
-				<div class="person-card admin-card">
+				<div
+					class="person-card admin-card"
+					[class.drag-over]="dragOverId === row.id"
+					draggable="true"
+					(dragstart)="onDragStart(row.id)"
+					(dragover)="onDragOver($event, row.id)"
+					(dragleave)="onDragLeave(row.id)"
+					(drop)="onDrop($event, row.id)"
+					(dragend)="onDragEnd()"
+				>
+					<span class="drag-handle" title="Glisser pour réordonner">⠿</span>
 					<div class="rank-badge" [ngClass]="row.color">{{row.initials}}</div>
 					<div class="person-info">
 						<div class="person-name">
@@ -13,6 +23,7 @@
 							}
 						</div>
 						<div class="person-meta">
+							<div>🔢 Rank : {{row.rank ?? '—'}} · Order base : {{row.orderBase ?? '—'}}</div>
 							@if (row.hasAccount) {
 								<div>🕐 Dernière connexion : {{row.lastLoginLabel}}</div>
 								<div [class.version-stale]="row.isStaleVersion">
