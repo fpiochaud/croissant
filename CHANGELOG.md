@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.1 — 2026-07-21
+
+- fix: ajout du orerBase et reordonner les membres dans la page admin
+
 ## v2.0.0 — 2026-07-19
 
 - feat!: Page d'administration
