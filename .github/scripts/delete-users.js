@@ -31,6 +31,8 @@ async function main() {
       const user = await auth.getUserByEmail(email);
       await auth.deleteUser(user.uid);
       console.log(`✅ ${personName ?? email} supprimé de Firebase Auth.`);
+      await db.collection('users').doc(user.uid).delete();
+      console.log(`🗑  Profil Firestore users/${user.uid} supprimé.`);
     } catch (err) {
       if (err.code === 'auth/user-not-found') {
         console.log(`ℹ️  ${email} introuvable dans Auth (déjà supprimé).`);

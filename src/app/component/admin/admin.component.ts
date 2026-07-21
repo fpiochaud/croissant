@@ -47,5 +47,43 @@ export class AdminComponent {
 
   currentVersion = APP_VERSION;
 
+  private draggedId: string | null = null;
+  dragOverId: string | null = null;
+
   constructor(public croissant: CroissantService) {}
+
+  onDragStart(id: string) {
+    this.draggedId = id;
+  }
+
+  onDragOver(event: DragEvent, id: string) {
+    event.preventDefault();
+    if (id !== this.draggedId) this.dragOverId = id;
+  }
+
+  onDragLeave(id: string) {
+    if (this.dragOverId === id) this.dragOverId = null;
+  }
+
+  onDrop(event: DragEvent, targetId: string) {
+    event.preventDefault();
+    this.dragOverId = null;
+    const draggedId = this.draggedId;
+    this.draggedId = null;
+    if (!draggedId || draggedId === targetId) return;
+
+    const ids = this.rows().map(r => r.id);
+    const fromIdx = ids.indexOf(draggedId);
+    const toIdx = ids.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+
+    ids.splice(fromIdx, 1);
+    ids.splice(toIdx, 0, draggedId);
+    this.croissant.reorderPersons(ids);
+  }
+
+  onDragEnd() {
+    this.draggedId = null;
+    this.dragOverId = null;
+  }
 }

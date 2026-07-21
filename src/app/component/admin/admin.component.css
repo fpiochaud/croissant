@@ -1,5 +1,21 @@
 .admin-card { cursor: default; }
 
+.drag-handle {
+  cursor: grab;
+  color: var(--text-hint);
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 2px;
+  user-select: none;
+}
+
+.drag-handle:active { cursor: grabbing; }
+
+.admin-card.drag-over {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
 .admin-role-badge {
   font-size: 11px;
   font-weight: 700;

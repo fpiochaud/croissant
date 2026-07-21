@@ -431,6 +431,25 @@ export class CroissantService {
     batch.commit();
   }
 
+  // Réordonne les personnes selon l'ordre de leurs id fourni (drag-and-drop admin).
+  // Ne touche qu'au rank — orderBase reste inchangé (référence maintenue manuellement).
+  reorderPersons(orderedIds: string[]) {
+    const byId = new Map(this.state().persons.map(p => [p.id, p]));
+    const persons = orderedIds.map(id => byId.get(id)).filter((p): p is Person => !!p);
+    if (persons.length !== byId.size) return;
+
+    this.state.update(s => ({
+      ...s,
+      persons: persons.map((p, i) => ({ ...p, rank: i })),
+    }));
+
+    const batch = writeBatch(this.db);
+    persons.forEach((p, i) => {
+      batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), { rank: i });
+    });
+    batch.commit();
+  }
+
   private async addPersonFromEmail(email: string) {
     if (!email) return;
 
@@ -449,7 +468,7 @@ export class CroissantService {
     const rank = lastSnap.empty ? 0 : ((lastSnap.docs[0].data()['rank'] as number) ?? 0) + 1;
 
     await addDoc(collection(this.db, 'teams', this.teamId, 'persons'), {
-      name, initials, color: 'c1', status: 'ok', rank, email,
+      name, initials, color: 'c1', status: 'ok', rank, orderBase: rank, email,
       createdAt: serverTimestamp(),
     });
   }
@@ -460,6 +479,7 @@ export class CroissantService {
       ...data,
       status: 'ok',
       rank,
+      orderBase: rank,
       createdAt: serverTimestamp(),
     });
   }
@@ -474,11 +494,39 @@ export class CroissantService {
   }
 
   deletePerson(person: Person) {
+    // Renumérote le rank et l'orderBase des personnes qui suivaient la personne
+    // supprimée, pour ne pas laisser de trou dans les séquences. Un même
+    // document ne peut recevoir qu'un seul update dans un writeBatch, donc les
+    // deux champs sont fusionnés dans un seul patch par personne concernée.
+    const deletedOrderBase = person.orderBase;
+    const deletedRank = person.rank;
+
+    const patches = new Map<string, Partial<Pick<Person, 'orderBase' | 'rank'>>>();
+    for (const p of this.state().persons) {
+      if (p.id === person.id) continue;
+      const patch: Partial<Pick<Person, 'orderBase' | 'rank'>> = {};
+      if (deletedOrderBase !== undefined && (p.orderBase ?? 0) > deletedOrderBase) {
+        patch.orderBase = (p.orderBase ?? 0) - 1;
+      }
+      if (deletedRank !== undefined && (p.rank ?? 0) > deletedRank) {
+        patch.rank = (p.rank ?? 0) - 1;
+      }
+      if (Object.keys(patch).length > 0) patches.set(p.id, patch);
+    }
+
     this.state.update(s => ({
       ...s,
-      persons: s.persons.filter(p => p.id !== person.id),
+      persons: s.persons
+        .filter(p => p.id !== person.id)
+        .map(p => patches.has(p.id) ? { ...p, ...patches.get(p.id) } : p),
     }));
-    deleteDoc(doc(this.db, 'teams', this.teamId, 'persons', person.id));
+
+    const batch = writeBatch(this.db);
+    batch.delete(doc(this.db, 'teams', this.teamId, 'persons', person.id));
+    patches.forEach((patch, id) => {
+      batch.update(doc(this.db, 'teams', this.teamId, 'persons', id), patch);
+    });
+    batch.commit();
 
     // Bloquer l'accès si la personne a un email
     if (person.email) {
