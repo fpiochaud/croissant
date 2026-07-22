@@ -1,4 +1,4 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { CroissantService, Person, UserProfile } from '../../croissant.service';
 import { APP_VERSION } from '../../../version';
@@ -47,43 +47,125 @@ export class AdminComponent {
 
   currentVersion = APP_VERSION;
 
-  private draggedId: string | null = null;
-  dragOverId: string | null = null;
+  draggedId = signal<string | null>(null);
+
+  // Ordre visuel pendant le drag (réordonné en direct dès qu'un voisin est
+  // dépassé de plus de la moitié). Null quand aucun drag n'est en cours,
+  // auquel cas l'ordre affiché est celui de `rows()`.
+  private dragOrderIds = signal<string[] | null>(null);
+
+  displayRows = computed<AdminRow[]>(() => {
+    const order = this.dragOrderIds();
+    const all = this.rows();
+    if (!order) return all;
+
+    const byId = new Map(all.map(r => [r.id, r]));
+    const reordered = order.map(id => byId.get(id)).filter((r): r is AdminRow => !!r);
+    return reordered.length === all.length ? reordered : all;
+  });
+
+  private dragCard: HTMLElement | null = null;
+  private dragStartY = 0;
+  private dragCenterY = 0;
+  private dragHeight = 0;
+  // Compense le décalage de position dans le flux causé par les swaps de
+  // voisins, pour que la carte continue de suivre le curseur sans saut
+  // (translateY appliqué = delta du curseur - décalage cumulé du flux).
+  private flowShift = 0;
+  private readonly onPointerMove = (event: PointerEvent) => this.handlePointerMove(event);
+  private readonly onPointerUp = () => this.handlePointerUp();
 
   constructor(public croissant: CroissantService) {}
 
-  onDragStart(id: string) {
-    this.draggedId = id;
-  }
-
-  onDragOver(event: DragEvent, id: string) {
+  // Drag vertical uniquement : on ignore l'axe X et on déplace la carte
+  // via transform pour garder le contrôle du mouvement (le drag HTML5
+  // natif suit le curseur sur les deux axes et ne peut pas être contraint).
+  onHandlePointerDown(event: PointerEvent, id: string) {
+    const card = (event.currentTarget as HTMLElement).closest<HTMLElement>('.admin-card');
+    if (!card) return;
     event.preventDefault();
-    if (id !== this.draggedId) this.dragOverId = id;
+
+    const rect = card.getBoundingClientRect();
+    this.dragCard = card;
+    this.dragStartY = event.clientY;
+    this.dragCenterY = rect.top + rect.height / 2;
+    this.dragHeight = rect.height;
+    this.flowShift = 0;
+    this.dragOrderIds.set(this.rows().map(r => r.id));
+    this.draggedId.set(id);
+
+    window.addEventListener('pointermove', this.onPointerMove);
+    window.addEventListener('pointerup', this.onPointerUp);
   }
 
-  onDragLeave(id: string) {
-    if (this.dragOverId === id) this.dragOverId = null;
+  private handlePointerMove(event: PointerEvent) {
+    if (!this.dragCard) return;
+
+    const deltaY = event.clientY - this.dragStartY;
+    this.dragCard.style.transform = `translateY(${deltaY - this.flowShift}px)`;
+
+    const visualCenterY = this.dragCenterY + deltaY;
+    // On compare le bord de la carte déplacée (dans le sens du mouvement)
+    // au milieu de la carte voisine, pas centre à centre : le swap doit se
+    // déclencher dès que la carte déplacée atteint la moitié de la carte
+    // cible, pas seulement quand elle la recouvre presque entièrement.
+    const visualTopY = visualCenterY - this.dragHeight / 2;
+    const visualBottomY = visualCenterY + this.dragHeight / 2;
+    const order = this.dragOrderIds();
+    const draggedId = this.draggedId();
+    if (!order || !draggedId) return;
+    const index = order.indexOf(draggedId);
+    if (index === -1) return;
+
+    if (index < order.length - 1) {
+      const belowEl = this.findCardEl(order[index + 1]);
+      const belowRect = belowEl?.getBoundingClientRect();
+      if (belowRect && visualBottomY > belowRect.top + belowRect.height / 2) {
+        this.swap(order, index, index + 1, this.outerHeight(belowEl!, belowRect));
+        return;
+      }
+    }
+
+    if (index > 0) {
+      const aboveEl = this.findCardEl(order[index - 1]);
+      const aboveRect = aboveEl?.getBoundingClientRect();
+      if (aboveRect && visualTopY < aboveRect.top + aboveRect.height / 2) {
+        this.swap(order, index, index - 1, -this.outerHeight(aboveEl!, aboveRect));
+      }
+    }
   }
 
-  onDrop(event: DragEvent, targetId: string) {
-    event.preventDefault();
-    this.dragOverId = null;
-    const draggedId = this.draggedId;
-    this.draggedId = null;
-    if (!draggedId || draggedId === targetId) return;
-
-    const ids = this.rows().map(r => r.id);
-    const fromIdx = ids.indexOf(draggedId);
-    const toIdx = ids.indexOf(targetId);
-    if (fromIdx === -1 || toIdx === -1) return;
-
-    ids.splice(fromIdx, 1);
-    ids.splice(toIdx, 0, draggedId);
-    this.croissant.reorderPersons(ids);
+  private findCardEl(id: string): HTMLElement | null {
+    return document.querySelector<HTMLElement>(`.admin-card[data-row-id="${CSS.escape(id)}"]`);
   }
 
-  onDragEnd() {
-    this.draggedId = null;
-    this.dragOverId = null;
+  private outerHeight(el: HTMLElement, rect: DOMRect): number {
+    return rect.height + parseFloat(getComputedStyle(el).marginBottom || '0');
+  }
+
+  private swap(order: string[], fromIndex: number, toIndex: number, flowDelta: number) {
+    const next = order.slice();
+    [next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]];
+    this.dragOrderIds.set(next);
+    this.flowShift += flowDelta;
+  }
+
+  private handlePointerUp() {
+    window.removeEventListener('pointermove', this.onPointerMove);
+    window.removeEventListener('pointerup', this.onPointerUp);
+
+    if (this.dragCard) {
+      this.dragCard.style.transform = '';
+      this.dragCard = null;
+    }
+
+    const finalOrder = this.dragOrderIds();
+    this.draggedId.set(null);
+    this.dragOrderIds.set(null);
+    if (!finalOrder) return;
+
+    const originalOrder = this.rows().map(r => r.id);
+    const changed = finalOrder.some((id, i) => id !== originalOrder[i]);
+    if (changed) this.croissant.reorderPersons(finalOrder);
   }
 }
