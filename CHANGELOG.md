@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.2 — 2026-07-22
+
+- fix: correction du drag and drop
+
 ## v2.0.1 — 2026-07-21
 
 - fix: ajout du orerBase et reordonner les membres dans la page admin
