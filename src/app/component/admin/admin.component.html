@@ -2,18 +2,13 @@
 	<div class="section-pad">
 		<div class="sec-label">Utilisateurs ({{ rows().length }})</div>
 		<div id="admin-list">
-			@for (row of rows(); track row.id) {
+			@for (row of displayRows(); track row.id) {
 				<div
 					class="person-card admin-card"
-					[class.drag-over]="dragOverId === row.id"
-					draggable="true"
-					(dragstart)="onDragStart(row.id)"
-					(dragover)="onDragOver($event, row.id)"
-					(dragleave)="onDragLeave(row.id)"
-					(drop)="onDrop($event, row.id)"
-					(dragend)="onDragEnd()"
+					[class.dragging]="draggedId() === row.id"
+					[attr.data-row-id]="row.id"
 				>
-					<span class="drag-handle" title="Glisser pour réordonner">⠿</span>
+					<span class="drag-handle" title="Glisser pour réordonner" (pointerdown)="onHandlePointerDown($event, row.id)">⠿</span>
 					<div class="rank-badge" [ngClass]="row.color">{{row.initials}}</div>
 					<div class="person-info">
 						<div class="person-name">

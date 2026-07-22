@@ -7,13 +7,24 @@
   line-height: 1;
   padding: 0 2px;
   user-select: none;
+  touch-action: none;
 }
 
 .drag-handle:active { cursor: grabbing; }
 
-.admin-card.drag-over {
+.admin-card.dragging {
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+  transition: none;
+  /* Annule l'animation d'entrée "fadeUp" (fill-mode: both) qui, sinon,
+     verrouille indéfiniment transform: translateY(0) et écraserait le
+     translateY appliqué en JS pendant le drag. */
+  animation: none;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+  background: var(--surface);
+  opacity: 0.97;
 }
 
 .admin-role-badge {
