@@ -1,6 +1,15 @@
 <div class="tab" [class.active]="croissant.activeTab() === 'admin'" id="tab-admin">
 	<div class="section-pad">
 		<div class="sec-label">Utilisateurs ({{ rows().length }})</div>
+		@if (isDev) {
+			<button
+				class="btn btn-outline"
+				type="button"
+				style="margin-bottom:12px;"
+				[disabled]="rotating()"
+				(click)="forceRotation()"
+			>{{ rotating() ? 'Rotation en cours…' : '🔧 Forcer une rotation (dev)' }}</button>
+		}
 		<div id="admin-list">
 			@for (row of displayRows(); track row.id) {
 				<div

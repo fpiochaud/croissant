@@ -2,6 +2,7 @@ import { Component, computed, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { CroissantService, Person, UserProfile } from '../../croissant.service';
 import { APP_VERSION } from '../../../version';
+import { environment } from '../../../environments/environment';
 
 interface AdminRow extends Person {
   role: string;
@@ -47,6 +48,10 @@ export class AdminComponent {
 
   currentVersion = APP_VERSION;
 
+  // Bouton de test réservé au mode dev, pour ne pas attendre le jour J
+  // à chaque itération sur le workflow de remplacement.
+  isDev = !environment.production;
+
   draggedId = signal<string | null>(null);
 
   // Ordre visuel pendant le drag (réordonné en direct dès qu'un voisin est
@@ -75,7 +80,19 @@ export class AdminComponent {
   private readonly onPointerMove = (event: PointerEvent) => this.handlePointerMove(event);
   private readonly onPointerUp = () => this.handlePointerUp();
 
+  rotating = signal(false);
+
   constructor(public croissant: CroissantService) {}
+
+  async forceRotation() {
+    if (this.rotating()) return;
+    this.rotating.set(true);
+    try {
+      await this.croissant.forceRotation();
+    } finally {
+      this.rotating.set(false);
+    }
+  }
 
   // Drag vertical uniquement : on ignore l'axe X et on déplace la carte
   // via transform pour garder le contrôle du mouvement (le drag HTML5
