@@ -111,7 +111,8 @@
       "Bash(find / -iname \"admin.component.spec.ts\" -not -path \"*/node_modules/*\")",
       "Bash(node --check /git/croissant/.github/scripts/delete-users.js)",
       "Skill(run)",
-      "Skill(run:*)"
+      "Skill(run:*)",
+      "Bash(git -C /git/croissant status --short)"
     ]
   }
 }

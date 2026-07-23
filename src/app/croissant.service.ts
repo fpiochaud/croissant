@@ -372,6 +372,20 @@ export class CroissantService {
     const { thisEventDate, thisEventDateStr, todayStr } = computeEventDate(sessionOffset);
     if (!shouldRotate(todayStr, thisEventDateStr, lastRotationDate)) return;
 
+    await this.performRotation(persons, thisEventDate, thisEventDateStr);
+  }
+
+  // Déclenche une rotation immédiatement, sans attendre le jour J — outil de
+  // test réservé au mode dev (voir bouton dans AdminComponent).
+  async forceRotation() {
+    const persons = this.state().persons;
+    if (persons.length === 0) return;
+
+    const { thisEventDate, thisEventDateStr } = computeEventDate(this.state().sessionOffset);
+    await this.performRotation(persons, thisEventDate, thisEventDateStr);
+  }
+
+  private async performRotation(persons: Person[], thisEventDate: Date, thisEventDateStr: string) {
     const { updated, carrierName } = rotateOnce(persons);
 
     const batch = writeBatch(this.db);
