@@ -72,8 +72,18 @@ export function shouldRotate(todayStr: string, thisEventDateStr: string, lastRot
 // Déplace le premier de la liste en dernier. Seul le nouveau premier passe en
 // rattrapage s'il était absent — les autres absents gardent leur statut ⛔,
 // ce n'est pas encore leur tour.
+//
+// Quand la personne qui sort (rang 0 → dernier) est celle qui a le orderBase
+// le plus élevé, un cycle complet de la référence orderBase vient de se
+// terminer. On cherche alors la personne de référence orderBase 0 — où
+// qu'elle se trouve dans la liste, pas seulement celle qui prend la tête par
+// simple rotation : une rotation ne fait que décaler le tableau, l'adjacence
+// entre le orderBase max et son voisin est figée par l'historique et ne
+// tombera jamais sur orderBase 0 par hasard. Si cette personne de référence
+// n'est pas absente, on resynchronise l'ordre courant sur orderBase, qui a pu
+// dériver au fil des rotations, absences et réordonnancements manuels.
 export function rotateOnce(persons: Person[]): { updated: Person[]; carrierName: string } {
-  const updated = [...persons];
+  let updated = [...persons];
   const [first] = updated.splice(0, 1);
   updated.push(first);
 
@@ -83,6 +93,14 @@ export function rotateOnce(persons: Person[]): { updated: Person[]; carrierName:
   }
 
   const carrierName = first.status === 'absent' ? (first.replacedBy ?? first.name) : first.name;
+
+  const maxOrderBase = persons.reduce((max, p) => Math.max(max, p.orderBase ?? -Infinity), -Infinity);
+  const rotatedOutWasLastOrderBase = first.orderBase === maxOrderBase;
+  const referenceFirst = persons.find(p => p.orderBase === 0);
+  if (rotatedOutWasLastOrderBase && referenceFirst && referenceFirst.status !== 'absent') {
+    updated = [...updated].sort((a, b) => (a.orderBase ?? 0) - (b.orderBase ?? 0));
+  }
+
   return { updated, carrierName };
 }
 
