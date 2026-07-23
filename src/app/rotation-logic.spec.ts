@@ -85,6 +85,71 @@ describe('rotateOnce', () => {
     const { carrierName } = rotateOnce(persons);
     expect(carrierName).toBe('Alice');
   });
+
+  describe('resynchronisation sur orderBase en fin de cycle', () => {
+    // Bug réel : une rotation ne fait que décaler le tableau, l'adjacence
+    // entre le orderBase max et son voisin est figée par les
+    // absences/reorders passés. Elle ne tombe donc quasiment jamais sur
+    // orderBase 0 par hasard — il faut chercher la personne de référence
+    // n'importe où dans la liste, pas seulement celle qui devient premier
+    // par la simple rotation.
+    it('réordonne selon orderBase même quand la personne orderBase 0 n\'est pas le voisin direct du orderBase max', () => {
+      // Ordre courant (rank) : A(2), B(0), C(1), D(3), E(4) — après 4
+      // rotations forcées sans absence, on arrive à E(4), A(2), B(0), C(1), D(3).
+      // E (orderBase max) sort ; une simple rotation ferait passer A (orderBase 2)
+      // en premier, jamais B (orderBase 0) : sans la recherche globale, la
+      // resynchronisation ne se déclencherait donc jamais.
+      const persons = [
+        person({ id: 'e', name: 'E', orderBase: 4 }),
+        person({ id: 'a', name: 'A', orderBase: 2 }),
+        person({ id: 'b', name: 'B', orderBase: 0 }),
+        person({ id: 'c', name: 'C', orderBase: 1 }),
+        person({ id: 'd', name: 'D', orderBase: 3 }),
+      ];
+
+      const { updated } = rotateOnce(persons);
+
+      expect(updated.map(p => p.id)).toEqual(['b', 'c', 'a', 'd', 'e']);
+    });
+
+    it("ne réordonne pas si la personne qui sort n'a pas le orderBase le plus élevé", () => {
+      const persons = [
+        person({ id: 'bob', name: 'Bob', orderBase: 1 }),
+        person({ id: 'alice', name: 'Alice', orderBase: 0 }),
+        person({ id: 'diana', name: 'Diana', orderBase: 3 }),
+        person({ id: 'charlie', name: 'Charlie', orderBase: 2 }),
+      ];
+
+      const { updated } = rotateOnce(persons);
+
+      expect(updated.map(p => p.id)).toEqual(['alice', 'diana', 'charlie', 'bob']);
+    });
+
+    it('ne réordonne pas si la personne orderBase 0 est absente', () => {
+      const persons = [
+        person({ id: 'diana', name: 'Diana', orderBase: 3 }),
+        person({ id: 'alice', name: 'Alice', orderBase: 0, status: 'absent', replacedBy: 'Bob' }),
+        person({ id: 'bob', name: 'Bob', orderBase: 1 }),
+        person({ id: 'charlie', name: 'Charlie', orderBase: 2 }),
+      ];
+
+      const { updated } = rotateOnce(persons);
+
+      expect(updated.map(p => p.id)).toEqual(['alice', 'bob', 'charlie', 'diana']);
+    });
+
+    it("ne réordonne pas si personne n'a orderBase 0", () => {
+      const persons = [
+        person({ id: 'diana', name: 'Diana', orderBase: 3 }),
+        person({ id: 'bob', name: 'Bob', orderBase: 1 }),
+        person({ id: 'charlie', name: 'Charlie', orderBase: 2 }),
+      ];
+
+      const { updated } = rotateOnce(persons);
+
+      expect(updated.map(p => p.id)).toEqual(['bob', 'charlie', 'diana']);
+    });
+  });
 });
 
 describe('reorderForReplacement', () => {
