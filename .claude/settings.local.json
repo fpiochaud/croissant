@@ -136,7 +136,10 @@
       "Bash(kill 95862)",
       "Bash(kill 105700)",
       "Bash(kill 106650 106651 108010)",
-      "Bash(lsof -i :8080 -sTCP:LISTEN -i :4201 -sTCP:LISTEN)"
+      "Bash(lsof -i :8080 -sTCP:LISTEN -i :4201 -sTCP:LISTEN)",
+      "Bash(npm info *)",
+      "Bash(git revert *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
