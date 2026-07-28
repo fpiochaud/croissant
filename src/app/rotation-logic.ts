@@ -69,20 +69,42 @@ export function shouldRotate(todayStr: string, thisEventDateStr: string, lastRot
   return true;
 }
 
+// Résout l'id de la personne qui a effectivement porté les croissants : le
+// remplaçant si l'absent en a un (recherché par nom, replacedBy n'étant
+// stocké que comme chaîne de nom — pas d'id), sinon la personne elle-même.
+// Miroir exact de la résolution de carrierName ci-dessous, pour rester
+// cohérent entre le texte d'historique et le décompte de cycle.
+function resolveCarrierId(first: Person, persons: Person[]): string {
+  if (first.status === 'absent' && first.replacedBy) {
+    const replacement = persons.find(p => p.name === first.replacedBy);
+    if (replacement) return replacement.id;
+  }
+  return first.id;
+}
+
 // Déplace le premier de la liste en dernier. Seul le nouveau premier passe en
 // rattrapage s'il était absent — les autres absents gardent leur statut ⛔,
 // ce n'est pas encore leur tour.
 //
-// Quand la personne qui sort (rang 0 → dernier) est celle qui a le orderBase
-// le plus élevé, un cycle complet de la référence orderBase vient de se
-// terminer. On cherche alors la personne de référence orderBase 0 — où
-// qu'elle se trouve dans la liste, pas seulement celle qui prend la tête par
-// simple rotation : une rotation ne fait que décaler le tableau, l'adjacence
-// entre le orderBase max et son voisin est figée par l'historique et ne
-// tombera jamais sur orderBase 0 par hasard. Si cette personne de référence
-// n'est pas absente, on resynchronise l'ordre courant sur orderBase, qui a pu
-// dériver au fil des rotations, absences et réordonnancements manuels.
-export function rotateOnce(persons: Person[]): { updated: Person[]; carrierName: string } {
+// `passedSinceSync` accumule les ids des personnes qui ont effectivement
+// porté les croissants (remplaçant compté, pas l'absent remplacé) depuis la
+// dernière resynchronisation, sans doublon. La resynchronisation (réordonner
+// selon orderBase) ne se déclenche que lorsque TOUS les membres actuels sont
+// passés au moins une fois — pas après un nombre fixe de rotations, un
+// remplacement pouvant faire porter deux fois la même personne pendant
+// qu'une autre n'a pas encore eu son tour. Les ids qui ne correspondent plus
+// à un membre existant (suppression en cours de cycle) sont filtrés à chaque
+// appel, pour ne jamais bloquer ni fausser le décompte.
+//
+// Garde absente : si la personne de référence orderBase 0 est absente au
+// moment où le cycle se complète, la resynchronisation est reportée d'une
+// rotation (le compteur n'est PAS remis à zéro) plutôt que de la placer en
+// tête alors qu'elle n'est pas là ; elle est retentée à chaque rotation
+// suivante jusqu'à ce que cette personne ne soit plus absente.
+export function rotateOnce(
+  persons: Person[],
+  passedSinceSync: string[] = []
+): { updated: Person[]; carrierName: string; passedSinceSync: string[] } {
   let updated = [...persons];
   const [first] = updated.splice(0, 1);
   updated.push(first);
@@ -93,19 +115,57 @@ export function rotateOnce(persons: Person[]): { updated: Person[]; carrierName:
   }
 
   const carrierName = first.status === 'absent' ? (first.replacedBy ?? first.name) : first.name;
+  const carrierId = resolveCarrierId(first, persons);
 
-  const maxOrderBase = persons.reduce((max, p) => Math.max(max, p.orderBase ?? -Infinity), -Infinity);
-  const rotatedOutWasLastOrderBase = first.orderBase === maxOrderBase;
-  const referenceFirst = persons.find(p => p.orderBase === 0);
-  if (rotatedOutWasLastOrderBase && referenceFirst && referenceFirst.status !== 'absent') {
-    updated = [...updated].sort((a, b) => (a.orderBase ?? 0) - (b.orderBase ?? 0));
+  const validIds = new Set(persons.map(p => p.id));
+  const withCarrier = passedSinceSync.includes(carrierId) ? passedSinceSync : [...passedSinceSync, carrierId];
+  const filteredPassed = withCarrier.filter(id => validIds.has(id));
+
+  const cycleComplete = persons.length > 0 && filteredPassed.length >= persons.length;
+
+  let nextPassed = filteredPassed;
+  if (cycleComplete) {
+    const referenceFirst = persons.find(p => p.orderBase === 0);
+    if (referenceFirst && referenceFirst.status !== 'absent') {
+      updated = [...updated].sort((a, b) => (a.orderBase ?? 0) - (b.orderBase ?? 0));
+      nextPassed = [];
+    }
+    // sinon : report — le cycle reste "complet", on retente au prochain appel
   }
 
-  return { updated, carrierName };
+  return { updated, carrierName, passedSinceSync: nextPassed };
 }
 
 export function eventDateLabel(thisEventDate: Date): string {
   return frLongDateLabel(thisEventDate);
+}
+
+// Suggère automatiquement un remplaçant pour un absent, en balayant la liste
+// à partir de sa position (ordre de rotation, avec retour au début). Deux
+// passes : d'abord un candidat qui n'a pas encore porté les croissants ce
+// cycle (passedSinceSync) — pour garantir qu'un tour = chaque membre passe
+// une seule fois, même en tenant compte des remplacements — puis, si tous
+// les disponibles ont déjà porté (ex. presque tout le monde absent), le
+// premier disponible peu importe s'il a déjà porté.
+export function suggestReplacement(persons: Person[], absentId: string, passedSinceSync: string[] = []): Person | undefined {
+  const idx = persons.findIndex(p => p.id === absentId);
+  if (idx === -1 || persons.length <= 1) return undefined;
+
+  const passedIds = new Set(passedSinceSync);
+  const findCandidate = (skipAlreadyPassed: boolean): Person | undefined => {
+    let nextIdx = (idx + 1) % persons.length;
+    for (let tries = 0; tries < persons.length; tries++) {
+      const candidate = persons[nextIdx];
+      const eligible = candidate.id !== absentId
+        && candidate.status !== 'absent'
+        && (!skipAlreadyPassed || !passedIds.has(candidate.id));
+      if (eligible) return candidate;
+      nextIdx = (nextIdx + 1) % persons.length;
+    }
+    return undefined;
+  };
+
+  return findCandidate(true) ?? findCandidate(false);
 }
 
 // Déplace le remplaçant juste devant l'absent, quel que soit son rang dans la

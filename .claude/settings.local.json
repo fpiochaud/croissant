@@ -114,7 +114,12 @@
       "Skill(run:*)",
       "Bash(git -C /git/croissant status --short)",
       "Bash(git log *)",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(netstat -tlnp)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:4200 --max-time 3)",
+      "Bash(curl -s http://localhost:4200/main.js --max-time 5)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo \"---exit: $?---\")"
     ]
   }
 }
