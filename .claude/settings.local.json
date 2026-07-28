@@ -119,7 +119,24 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:4200 --max-time 3)",
       "Bash(curl -s http://localhost:4200/main.js --max-time 5)",
       "Bash(echo \"exit: $?\")",
-      "Bash(echo \"---exit: $?---\")"
+      "Bash(echo \"---exit: $?---\")",
+      "Bash(timeout 120 npx ng test --watch=false)",
+      "Bash(curl -s localhost:9099 -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(lsof -i :8080 -sTCP:LISTEN)",
+      "Bash(lsof -i :9099 -sTCP:LISTEN)",
+      "Bash(lsof -i :4201 -sTCP:LISTEN)",
+      "Bash(ps -p 55966 -o pid,ppid,etimes,cmd --no-headers)",
+      "Bash(kill 55966)",
+      "Bash(kill 95070)",
+      "Bash(timeout 90 npx firebase emulators:start --only auth,firestore --project demo-croissant)",
+      "Bash(echo \"started with pid $!\")",
+      "Bash(curl -s localhost:9099 -o /dev/null -w \"auth:%{http_code}\\\\n\")",
+      "Bash(curl -s localhost:8080 -o /dev/null -w \"firestore:%{http_code}\\\\n\")",
+      "Bash(kill 102249)",
+      "Bash(kill 95862)",
+      "Bash(kill 105700)",
+      "Bash(kill 106650 106651 108010)",
+      "Bash(lsof -i :8080 -sTCP:LISTEN -i :4201 -sTCP:LISTEN)"
     ]
   }
 }

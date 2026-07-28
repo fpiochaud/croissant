@@ -53,6 +53,7 @@ export class CroissantService {
   private messaging: Messaging | null = null;
   private currentFcmToken: string | null = null;
   private teamId = environment.teamId;
+  private readonly HISTORY_PAGE_SIZE = 20;
   private listenersInitialized = false;
   private adminListenersInitialized = false;
   private rotationChecked = false;
@@ -69,6 +70,11 @@ export class CroissantService {
     passedSinceSync: [],
   });
 
+  historyHasMore = signal(true);
+  historyLoading = signal(true);
+  private historyLimit = signal(this.HISTORY_PAGE_SIZE);
+  private historyUnsub: (() => void) | null = null;
+
   darkMode    = signal<boolean>(localStorage.getItem('darkMode') === 'true');
   syncStatus  = signal<'syncing' | 'online' | 'offline'>('syncing');
   activeTab   = signal<'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params' | 'admin'>('rotation');
@@ -77,8 +83,6 @@ export class CroissantService {
   showEditModal = signal(false);
   editPerson    = signal<Person | null>(null);
   personToDelete  = signal<Person | null>(null);
-  personToPromote = signal<Person | null>(null);
-  promoteBlocked  = signal(false);
   fcmStatus     = signal<'idle' | 'pending' | 'granted' | 'denied'>('idle');
 
   // Auth
@@ -260,13 +264,7 @@ export class CroissantService {
       }
     );
 
-    onSnapshot(
-      query(collection(this.db, 'teams', this.teamId, 'history'), orderBy('timestamp', 'desc'), limit(10)),
-      (snap) => {
-        const history = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-        this.state.update(s => ({ ...s, history }));
-      }
-    );
+    this.subscribeHistory();
 
     onSnapshot(
       query(collection(this.db, 'teams', this.teamId, 'notifications'), orderBy('timestamp', 'desc'), limit(10)),
@@ -324,6 +322,29 @@ export class CroissantService {
       ...event,
       timestamp: serverTimestamp(),
     });
+  }
+
+  // Réabonne l'écoute de l'historique avec la limite courante — on ne peut
+  // pas faire grandir un onSnapshot déjà ouvert, donc on le recrée à chaque
+  // page chargée (scroll infini par pas de HISTORY_PAGE_SIZE).
+  private subscribeHistory() {
+    this.historyUnsub?.();
+    this.historyLoading.set(true);
+    this.historyUnsub = onSnapshot(
+      query(collection(this.db, 'teams', this.teamId, 'history'), orderBy('timestamp', 'desc'), limit(this.historyLimit())),
+      (snap) => {
+        const history = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+        this.state.update(s => ({ ...s, history }));
+        this.historyHasMore.set(snap.docs.length >= this.historyLimit());
+        this.historyLoading.set(false);
+      }
+    );
+  }
+
+  loadMoreHistory() {
+    if (!this.historyHasMore() || this.historyLoading()) return;
+    this.historyLimit.update(n => n + this.HISTORY_PAGE_SIZE);
+    this.subscribeHistory();
   }
 
   setPersonAbsent(personId: string, replacedBy?: string) {
@@ -432,28 +453,6 @@ export class CroissantService {
       oldHistorySnap.docs.forEach(d => purgeBatch.delete(d.ref));
       await purgeBatch.commit();
     }
-  }
-
-  movePersonToTop(personId: string) {
-    const persons = [...this.state().persons]; // déjà triés par rank
-    const idx = persons.findIndex(p => p.id === personId);
-    if (idx <= 0) return; // déjà en premier
-
-    const [person] = persons.splice(idx, 1);
-    persons.unshift(person);
-
-    // Mise à jour locale immédiate
-    this.state.update(s => ({
-      ...s,
-      persons: persons.map((p, i) => ({ ...p, rank: i })),
-    }));
-
-    // Écriture en batch dans Firestore
-    const batch = writeBatch(this.db);
-    persons.forEach((p, i) => {
-      batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), { rank: i });
-    });
-    batch.commit();
   }
 
   // Réordonne les personnes selon l'ordre de leurs id fourni (drag-and-drop admin).
