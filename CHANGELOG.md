@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.0 — 2026-07-28
+
+- feat: changement de l'affichage  admin
+- feat: retri de l ordre de passage
+- feat: changement du worflow
+
 ## v2.0.2 — 2026-07-22
 
 - fix: correction du drag and drop
