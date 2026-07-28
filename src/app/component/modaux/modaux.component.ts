@@ -13,8 +13,6 @@ export class ModauxComponent {
   showEditModal = this.croissant.showEditModal;
   editPerson = this.croissant.editPerson;
   personToDelete  = this.croissant.personToDelete;
-  personToPromote = this.croissant.personToPromote;
-  promoteBlocked  = this.croissant.promoteBlocked;
   color = signal('c1');
 
   constructor() {
@@ -41,6 +39,8 @@ export class ModauxComponent {
           if (emailInput) emailInput.value = ep.email ?? '';
           const statusSelect = document.getElementById('edit-status') as HTMLSelectElement | null;
           if (statusSelect) statusSelect.value = ep.status === 'absent' ? 'absent' : 'disponible';
+          const orderBaseInput = document.getElementById('edit-order-base') as HTMLInputElement | null;
+          if (orderBaseInput) orderBaseInput.value = ep.orderBase !== undefined ? String(ep.orderBase) : '';
           document.querySelectorAll('#edit-color-picker .color-dot').forEach(dot => dot.classList.remove('selected'));
           document.querySelector(`#edit-color-picker .${ep.color}`)?.classList.add('selected');
         }, 0);
@@ -110,7 +110,12 @@ export class ModauxComponent {
       updated.catchupDate = null;
       updated.promoted = null;
     }
-    if (!this.croissant.isAdmin()) delete (updated as any).email;
+    if (this.croissant.isAdmin()) {
+      const orderBaseVal = (document.getElementById('edit-order-base') as HTMLInputElement)?.value;
+      if (orderBaseVal !== '' && orderBaseVal !== undefined) updated.orderBase = Number(orderBaseVal);
+    } else {
+      delete (updated as any).email;
+    }
     this.croissant.updatePerson(updated);
     this.croissant.closeModals();
     this.croissant.editPerson.set(null);
@@ -132,21 +137,6 @@ export class ModauxComponent {
 
   cancelDelete() {
     this.croissant.personToDelete.set(null);
-  }
-
-  confirmPromote() {
-    const person = this.personToPromote();
-    if (!person) return;
-    this.croissant.movePersonToTop(person.id);
-    this.croissant.personToPromote.set(null);
-  }
-
-  cancelPromote() {
-    this.croissant.personToPromote.set(null);
-  }
-
-  closePromoteBlocked() {
-    this.croissant.promoteBlocked.set(false);
   }
 
   confirmManualSwap() {

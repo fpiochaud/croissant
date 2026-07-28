@@ -96,6 +96,14 @@ export class AdminComponent {
 
   constructor(public croissant: CroissantService) {}
 
+  editPerson(person: Person) {
+    this.croissant.openEditModal(person);
+  }
+
+  deletePerson(person: Person) {
+    this.croissant.personToDelete.set(person);
+  }
+
   async forceRotation() {
     if (this.rotating()) return;
     this.rotating.set(true);

@@ -17,8 +17,9 @@
 					class="person-card admin-card"
 					[class.dragging]="draggedId() === row.id"
 					[attr.data-row-id]="row.id"
+					(click)="editPerson(row)"
 				>
-					<span class="drag-handle" title="Glisser pour réordonner" (pointerdown)="onHandlePointerDown($event, row.id)">⠿</span>
+					<span class="drag-handle" title="Glisser pour réordonner" (click)="$event.stopPropagation()" (pointerdown)="onHandlePointerDown($event, row.id)">⠿</span>
 					<div class="rank-badge" [ngClass]="row.color">{{row.initials}}</div>
 					<div class="person-info">
 						<div class="person-name">
@@ -29,7 +30,7 @@
 						</div>
 						<div class="person-meta">
 							<div>
-								🔢 Rank : {{row.rank ?? '—'}} · Order base : {{row.orderBase ?? '—'}}
+								Order base : {{row.orderBase ?? '—'}}
 								<span class="cycle-badge" [class.cycle-badge-done]="row.hasPassed">
 									{{ row.hasPassed ? '✅ Passé ce tour' : '⏳ Pas encore passé' }}
 								</span>
@@ -46,6 +47,9 @@
 								<div>Aucun compte associé</div>
 							}
 						</div>
+					</div>
+					<div class="card-actions">
+						<button class="card-btn card-btn-delete" (click)="$event.stopPropagation(); deletePerson(row)">🗑️</button>
 					</div>
 				</div>
 			}

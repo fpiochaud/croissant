@@ -19,6 +19,12 @@
 					</div>
 				</div>
 			}
+			@if (croissant.historyHasMore()) {
+				<div id="history-sentinel" class="history-sentinel"></div>
+			}
+			@if (croissant.historyLoading()) {
+				<div class="history-loading">Chargement…</div>
+			}
 		</div>
 	</div>
 </div>
