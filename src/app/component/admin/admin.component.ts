@@ -10,6 +10,7 @@ interface AdminRow extends Person {
   appVersion: string | null;
   isStaleVersion: boolean;
   hasAccount: boolean;
+  hasPassed: boolean;
 }
 
 function formatLastLogin(ts: any): string {
@@ -31,6 +32,7 @@ export class AdminComponent {
     for (const u of this.croissant.users()) {
       if (u.email) usersByEmail.set(u.email, u);
     }
+    const passedIds = new Set(this.croissant.state().passedSinceSync);
 
     // Déjà trié par rank (croissant.state().persons vient d'une query orderBy('rank')).
     return this.croissant.state().persons.map(person => {
@@ -42,11 +44,21 @@ export class AdminComponent {
         appVersion: account?.appVersion ?? null,
         isStaleVersion: !!account?.appVersion && account.appVersion !== APP_VERSION,
         hasAccount: !!account,
+        hasPassed: passedIds.has(person.id),
       };
     });
   });
 
   currentVersion = APP_VERSION;
+
+  // Progression du cycle courant vers la prochaine resynchronisation orderBase
+  // (voir rotateOnce / passedSinceSync). Dérivé de rows() (déjà filtré contre
+  // les membres actuels), pour rester cohérent après une suppression en
+  // cours de cycle.
+  syncProgress = computed<{ passed: number; total: number }>(() => {
+    const rows = this.rows();
+    return { passed: rows.filter(r => r.hasPassed).length, total: rows.length };
+  });
 
   // Bouton de test réservé au mode dev, pour ne pas attendre le jour J
   // à chaque itération sur le workflow de remplacement.

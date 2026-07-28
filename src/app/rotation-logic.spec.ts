@@ -5,6 +5,7 @@ import {
   computeEventDate,
   shouldRotate,
   rotateOnce,
+  suggestReplacement,
   reorderForReplacement,
   computeAbsentDates,
   computePersonsWithDates,
@@ -86,19 +87,28 @@ describe('rotateOnce', () => {
     expect(carrierName).toBe('Alice');
   });
 
-  describe('resynchronisation sur orderBase en fin de cycle', () => {
-    // Bug réel : une rotation ne fait que décaler le tableau, l'adjacence
-    // entre le orderBase max et son voisin est figée par les
-    // absences/reorders passés. Elle ne tombe donc quasiment jamais sur
-    // orderBase 0 par hasard — il faut chercher la personne de référence
-    // n'importe où dans la liste, pas seulement celle qui devient premier
-    // par la simple rotation.
-    it('réordonne selon orderBase même quand la personne orderBase 0 n\'est pas le voisin direct du orderBase max', () => {
+  describe('resynchronisation basée sur le compteur de passages distincts', () => {
+    // Bug réel de l'ancienne heuristique (orderBase max qui sort) : un
+    // remplacement peut faire porter deux fois la même personne pendant
+    // qu'une autre n'a jamais eu son tour — "N rotations" ne veut donc pas
+    // dire "N personnes distinctes sont passées". Le compteur de distincts
+    // corrige ça.
+    it('ne resynchronise pas tant que tous les membres distincts ne sont pas passés, même si un remplacement fait repasser la même personne', () => {
+      const persons = [
+        person({ id: 'a', name: 'A', orderBase: 0 }),
+        person({ id: 'b', name: 'B', orderBase: 1 }),
+        person({ id: 'c', name: 'C', orderBase: 2 }),
+      ];
+      // b a déjà porté (répétition via remplacement), c jamais encore.
+      const { updated, passedSinceSync } = rotateOnce(persons, ['b']);
+
+      expect(updated.map(p => p.id)).toEqual(['b', 'c', 'a']); // simple rotation, pas de tri
+      expect(passedSinceSync.sort()).toEqual(['a', 'b']);
+    });
+
+    it('resynchronise et remet le compteur à zéro quand le dernier membre distinct vient de passer', () => {
       // Ordre courant (rank) : A(2), B(0), C(1), D(3), E(4) — après 4
       // rotations forcées sans absence, on arrive à E(4), A(2), B(0), C(1), D(3).
-      // E (orderBase max) sort ; une simple rotation ferait passer A (orderBase 2)
-      // en premier, jamais B (orderBase 0) : sans la recherche globale, la
-      // resynchronisation ne se déclencherait donc jamais.
       const persons = [
         person({ id: 'e', name: 'E', orderBase: 4 }),
         person({ id: 'a', name: 'A', orderBase: 2 }),
@@ -106,49 +116,125 @@ describe('rotateOnce', () => {
         person({ id: 'c', name: 'C', orderBase: 1 }),
         person({ id: 'd', name: 'D', orderBase: 3 }),
       ];
-
-      const { updated } = rotateOnce(persons);
+      // a, b, c, d ont déjà tous porté ; e (qui sort maintenant) complète le cycle.
+      const { updated, passedSinceSync } = rotateOnce(persons, ['a', 'b', 'c', 'd']);
 
       expect(updated.map(p => p.id)).toEqual(['b', 'c', 'a', 'd', 'e']);
+      expect(passedSinceSync).toEqual([]);
     });
 
-    it("ne réordonne pas si la personne qui sort n'a pas le orderBase le plus élevé", () => {
+    it('reporte la resynchronisation sans remettre le compteur à zéro si la personne orderBase 0 est absente, puis resynchronise dès qu\'elle est de nouveau disponible', () => {
       const persons = [
-        person({ id: 'bob', name: 'Bob', orderBase: 1 }),
-        person({ id: 'alice', name: 'Alice', orderBase: 0 }),
-        person({ id: 'diana', name: 'Diana', orderBase: 3 }),
-        person({ id: 'charlie', name: 'Charlie', orderBase: 2 }),
+        person({ id: 'd', name: 'D', orderBase: 3 }),
+        person({ id: 'a', name: 'A', orderBase: 0, status: 'absent', replacedBy: 'B' }),
+        person({ id: 'b', name: 'B', orderBase: 1 }),
+        person({ id: 'c', name: 'C', orderBase: 2 }),
       ];
+      // a, b, c ont déjà tous porté ; d (qui sort maintenant) compléterait le
+      // cycle, mais la référence (a, orderBase 0) est absente : report.
+      const step1 = rotateOnce(persons, ['a', 'b', 'c']);
 
-      const { updated } = rotateOnce(persons);
+      expect(step1.updated.map(p => p.id)).toEqual(['a', 'b', 'c', 'd']); // pas de tri
+      expect(step1.passedSinceSync.sort()).toEqual(['a', 'b', 'c', 'd']); // compteur PAS remis à zéro
 
-      expect(updated.map(p => p.id)).toEqual(['alice', 'diana', 'charlie', 'bob']);
+      // Rotation suivante : a n'est plus absent -> resynchronisation.
+      const personsAfter = step1.updated.map(p => (p.id === 'a' ? { ...p, status: 'ok' as const } : p));
+      const step2 = rotateOnce(personsAfter, step1.passedSinceSync);
+
+      expect(step2.updated.map(p => p.id)).toEqual(['a', 'b', 'c', 'd']); // trié par orderBase
+      expect(step2.passedSinceSync).toEqual([]);
     });
 
-    it('ne réordonne pas si la personne orderBase 0 est absente', () => {
+    it("attribue le passage au remplaçant (pas à l'absent d'origine) pour le décompte de cycle", () => {
       const persons = [
-        person({ id: 'diana', name: 'Diana', orderBase: 3 }),
-        person({ id: 'alice', name: 'Alice', orderBase: 0, status: 'absent', replacedBy: 'Bob' }),
-        person({ id: 'bob', name: 'Bob', orderBase: 1 }),
-        person({ id: 'charlie', name: 'Charlie', orderBase: 2 }),
+        person({ id: 'alice', name: 'Alice', status: 'absent', replacedBy: 'Charlie' }),
+        person({ id: 'bob', name: 'Bob' }),
+        person({ id: 'charlie', name: 'Charlie' }),
       ];
+      const { passedSinceSync } = rotateOnce(persons, []);
 
-      const { updated } = rotateOnce(persons);
-
-      expect(updated.map(p => p.id)).toEqual(['alice', 'bob', 'charlie', 'diana']);
+      expect(passedSinceSync).toEqual(['charlie']); // pas 'alice'
     });
 
-    it("ne réordonne pas si personne n'a orderBase 0", () => {
+    it("ignore les ids obsolètes (membre supprimé en cours de cycle) sans bloquer ni fausser le décompte", () => {
       const persons = [
-        person({ id: 'diana', name: 'Diana', orderBase: 3 }),
-        person({ id: 'bob', name: 'Bob', orderBase: 1 }),
-        person({ id: 'charlie', name: 'Charlie', orderBase: 2 }),
+        person({ id: 'a', name: 'A', orderBase: 1 }),
+        person({ id: 'b', name: 'B', orderBase: 0 }),
       ];
+      // 'ghost' a été supprimé entretemps ; b a déjà passé. a sort maintenant
+      // (rang 0) et complète le cycle des 2 membres actuels — 'ghost' ne doit
+      // ni bloquer ni fausser ce décompte.
+      const { updated, passedSinceSync } = rotateOnce(persons, ['ghost', 'b']);
 
-      const { updated } = rotateOnce(persons);
-
-      expect(updated.map(p => p.id)).toEqual(['bob', 'charlie', 'diana']);
+      expect(updated.map(p => p.id)).toEqual(['b', 'a']); // trié par orderBase
+      expect(passedSinceSync).toEqual([]);
     });
+  });
+});
+
+describe('suggestReplacement', () => {
+  it("propose le suivant disponible dans l'ordre de rotation quand personne n'est encore passé", () => {
+    const persons = [
+      person({ id: 'alice', name: 'Alice' }),
+      person({ id: 'bob', name: 'Bob' }),
+      person({ id: 'charlie', name: 'Charlie' }),
+    ];
+    expect(suggestReplacement(persons, 'alice', [])?.id).toBe('bob');
+  });
+
+  it('saute les membres déjà absents', () => {
+    const persons = [
+      person({ id: 'alice', name: 'Alice' }),
+      person({ id: 'bob', name: 'Bob', status: 'absent' }),
+      person({ id: 'charlie', name: 'Charlie' }),
+    ];
+    expect(suggestReplacement(persons, 'alice', [])?.id).toBe('charlie');
+  });
+
+  // Cœur de la garantie "un tour = chaque membre passe une seule fois" :
+  // le suivant naturel a déjà porté ce cycle, on saute jusqu'au premier
+  // membre qui n'est pas encore passé, même s'il est plus loin dans la liste.
+  it("privilégie un remplaçant qui n'a pas encore porté les croissants ce cycle, même s'il n'est pas le plus proche", () => {
+    const persons = [
+      person({ id: 'alice', name: 'Alice' }),
+      person({ id: 'bob', name: 'Bob' }),      // déjà passé ce cycle
+      person({ id: 'charlie', name: 'Charlie' }), // pas encore passé
+      person({ id: 'diana', name: 'Diana' }),
+    ];
+    expect(suggestReplacement(persons, 'alice', ['bob'])?.id).toBe('charlie');
+  });
+
+  it("retombe sur le premier disponible si tous les candidats non-absents ont déjà porté ce cycle", () => {
+    const persons = [
+      person({ id: 'alice', name: 'Alice' }),
+      person({ id: 'bob', name: 'Bob' }),
+      person({ id: 'charlie', name: 'Charlie', status: 'absent' }),
+    ];
+    // bob a déjà porté ; charlie est absent : bob reste le seul choix possible.
+    expect(suggestReplacement(persons, 'alice', ['bob'])?.id).toBe('bob');
+  });
+
+  it("ne retourne rien si tout le monde d'autre est absent", () => {
+    const persons = [
+      person({ id: 'alice', name: 'Alice' }),
+      person({ id: 'bob', name: 'Bob', status: 'absent' }),
+      person({ id: 'charlie', name: 'Charlie', status: 'absent' }),
+    ];
+    expect(suggestReplacement(persons, 'alice', [])).toBeUndefined();
+  });
+
+  it("boucle jusqu'au début de la liste si l'absent est en fin de liste", () => {
+    const persons = [
+      person({ id: 'alice', name: 'Alice' }),
+      person({ id: 'bob', name: 'Bob' }),
+      person({ id: 'charlie', name: 'Charlie' }),
+    ];
+    expect(suggestReplacement(persons, 'charlie', [])?.id).toBe('alice');
+  });
+
+  it("ne retourne rien pour une liste d'une seule personne ou un id introuvable", () => {
+    expect(suggestReplacement([person({ id: 'alice', name: 'Alice' })], 'alice', [])).toBeUndefined();
+    expect(suggestReplacement([person({ id: 'alice', name: 'Alice' })], 'inconnu', [])).toBeUndefined();
   });
 });
 

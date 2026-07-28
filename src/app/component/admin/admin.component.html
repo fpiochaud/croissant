@@ -1,6 +1,7 @@
 <div class="tab" [class.active]="croissant.activeTab() === 'admin'" id="tab-admin">
 	<div class="section-pad">
 		<div class="sec-label">Utilisateurs ({{ rows().length }})</div>
+		<div class="sync-progress">🔄 {{ syncProgress().passed }}/{{ syncProgress().total }} passés avant resynchronisation</div>
 		@if (isDev) {
 			<button
 				class="btn btn-outline"
@@ -27,7 +28,12 @@
 							}
 						</div>
 						<div class="person-meta">
-							<div>🔢 Rank : {{row.rank ?? '—'}} · Order base : {{row.orderBase ?? '—'}}</div>
+							<div>
+								🔢 Rank : {{row.rank ?? '—'}} · Order base : {{row.orderBase ?? '—'}}
+								<span class="cycle-badge" [class.cycle-badge-done]="row.hasPassed">
+									{{ row.hasPassed ? '✅ Passé ce tour' : '⏳ Pas encore passé' }}
+								</span>
+							</div>
 							@if (row.hasAccount) {
 								<div>🕐 Dernière connexion : {{row.lastLoginLabel}}</div>
 								<div [class.version-stale]="row.isStaleVersion">

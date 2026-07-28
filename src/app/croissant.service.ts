@@ -38,6 +38,7 @@ export interface AppState {
   notifications: any[];
   currentIndex: number;
   sessionOffset: number; // 0=lundi, 1=mardi, 2=mercredi
+  passedSinceSync: string[]; // ids des membres passés depuis la dernière resync orderBase
 }
 
 function encodeEmail(email: string): string {
@@ -65,6 +66,7 @@ export class CroissantService {
     notifications: [],
     currentIndex: 0,
     sessionOffset: 0,
+    passedSinceSync: [],
   });
 
   darkMode    = signal<boolean>(localStorage.getItem('darkMode') === 'true');
@@ -227,6 +229,7 @@ export class CroissantService {
           currentIndex:  d['currentIndex']  ?? s.currentIndex,
           rules:         d['rules']         ?? s.rules,
           sessionOffset: d['sessionOffset'] ?? 0,
+          passedSinceSync: d['passedSinceSync'] ?? s.passedSinceSync,
         }));
       } else if (!snap.metadata.fromCache) {
         // N'initialiser le document que si le serveur confirme son absence,
@@ -235,6 +238,7 @@ export class CroissantService {
           teamName: 'Mon équipe',
           currentIndex: 0,
           rules: { auto: true, catch: true, manual: false },
+          passedSinceSync: [],
         });
       }
       this.syncStatus.set('online');
@@ -368,11 +372,12 @@ export class CroissantService {
     const teamSnap = await getDocFromServer(doc(this.db, 'teams', this.teamId));
     const lastRotationDate: string | null = teamSnap.data()?.['lastRotationDate'] ?? null;
     const sessionOffset: number = teamSnap.data()?.['sessionOffset'] ?? 0;
+    const passedSinceSync: string[] = teamSnap.data()?.['passedSinceSync'] ?? [];
 
     const { thisEventDate, thisEventDateStr, todayStr } = computeEventDate(sessionOffset);
     if (!shouldRotate(todayStr, thisEventDateStr, lastRotationDate)) return;
 
-    await this.performRotation(persons, thisEventDate, thisEventDateStr);
+    await this.performRotation(persons, thisEventDate, thisEventDateStr, passedSinceSync);
   }
 
   // Déclenche une rotation immédiatement, sans attendre le jour J — outil de
@@ -382,11 +387,13 @@ export class CroissantService {
     if (persons.length === 0) return;
 
     const { thisEventDate, thisEventDateStr } = computeEventDate(this.state().sessionOffset);
-    await this.performRotation(persons, thisEventDate, thisEventDateStr);
+    await this.performRotation(persons, thisEventDate, thisEventDateStr, this.state().passedSinceSync);
   }
 
-  private async performRotation(persons: Person[], thisEventDate: Date, thisEventDateStr: string) {
-    const { updated, carrierName } = rotateOnce(persons);
+  private async performRotation(
+    persons: Person[], thisEventDate: Date, thisEventDateStr: string, passedSinceSync: string[]
+  ) {
+    const { updated, carrierName, passedSinceSync: nextPassedSinceSync } = rotateOnce(persons, passedSinceSync);
 
     const batch = writeBatch(this.db);
     updated.forEach((p, i) => {
@@ -399,7 +406,11 @@ export class CroissantService {
       }
       batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), update);
     });
-    batch.update(doc(this.db, 'teams', this.teamId), { lastRotationDate: thisEventDateStr, sessionOffset: 0 });
+    batch.update(doc(this.db, 'teams', this.teamId), {
+      lastRotationDate: thisEventDateStr,
+      sessionOffset: 0,
+      passedSinceSync: nextPassedSinceSync,
+    });
     await batch.commit();
 
     // Enregistre le passage dans l'historique

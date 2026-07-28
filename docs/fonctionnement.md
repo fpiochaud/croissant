@@ -69,6 +69,22 @@ La rotation consiste à :
 4. Remettre `sessionOffset` à 0
 5. Purger l'historique au-delà de 6 mois
 
+### Resynchronisation périodique (`orderBase`)
+
+En plus du `rank` (position d'affichage, qui bouge à chaque rotation/remplacement/
+réordonnancement manuel), chaque membre a un `orderBase` stable (0..N-1). L'app
+compte les membres distincts qui ont effectivement porté les croissants
+(en tenant compte des remplacements — le remplaçant compte, pas l'absent
+remplacé) depuis la dernière resynchronisation. Dès que **tous les membres
+actuels** sont passés au moins une fois, l'ordre courant est réaligné sur
+`orderBase` — ce qui corrige la dérive accumulée par les absences,
+remplacements et réordonnancements manuels — et le compteur repart à zéro.
+
+Si la personne de référence (`orderBase = 0`) est absente au moment où le
+cycle se complète, la resynchronisation est reportée d'une semaine (le
+compteur n'est pas remis à zéro) plutôt que de la placer en tête alors
+qu'elle ne peut pas prendre son tour.
+
 ### Affichage des dates dans la liste
 
 Chaque membre de la liste affiche sa date de passage prévue. Le calcul tient compte de :
@@ -91,6 +107,8 @@ L'onglet **Remplacer** permet de déclarer qu'un membre sera absent. La sélecti
 ### Remplacement automatique
 
 Si la règle **Remplacement automatique** est activée (admin), le suivant dans la liste (en ignorant les membres déjà absents) est automatiquement proposé comme remplaçant.
+
+Le suivant proposé privilégie un membre qui n'a pas encore porté les croissants depuis la dernière resynchronisation `orderBase` (voir §3) : ceci garantit qu'un tour correspond à chaque membre passant une seule fois, même quand des remplacements se succèdent. Si tous les membres disponibles ont déjà porté ce cycle (ex. presque tout le monde absent), le premier disponible est proposé quand même.
 
 Le flux affiché : `Absent → Remplaçant`
 
@@ -242,6 +260,7 @@ Document principal de l'équipe.
 | `sessionOffset` | number | Décalage du jour (0, 1 ou 2) |
 | `rules.auto` | boolean | Remplacement automatique activé |
 | `rules.catch` | boolean | Rattrapage automatique activé |
+| `passedSinceSync` | array&lt;string&gt; | Ids des membres passés depuis la dernière resynchronisation `orderBase` |
 
 ### Sous-collection `teams/{teamId}/persons/{personId}`
 
@@ -254,6 +273,7 @@ Un document par membre.
 | `color` | string | Classe CSS de couleur (`c1`…`c16`) |
 | `email` | string | E-mail (lié au compte Firebase Auth) |
 | `rank` | number | Position dans la rotation (0 = prochain) |
+| `orderBase` | number | Référence d'ordre stable (0..N-1), utilisée pour la resynchronisation périodique (voir §3) |
 | `status` | string | `ok` / `absent` / `catch` |
 | `absentDate` | string | Date d'absence formatée |
 | `replacedBy` | string | Nom du remplaçant |

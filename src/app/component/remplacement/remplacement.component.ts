@@ -1,6 +1,7 @@
 import { Component, computed, signal } from '@angular/core';
 import { NgFor } from '@angular/common';
 import { CroissantService, Person } from '../../croissant.service';
+import { suggestReplacement } from '../../rotation-logic';
 
 @Component({
   selector: 'croissant-remplacement',
@@ -24,18 +25,7 @@ export class RemplacementComponent {
     const absent = this.persons().find(p => p.id === id);
     let replacement: Person | undefined = undefined;
     if (absent && this.rules().auto) {
-      const idx = this.persons().findIndex(p => p.id === id);
-      if (idx !== -1 && this.persons().length > 1) {
-        let nextIdx = (idx + 1) % this.persons().length;
-        let tries = 0;
-        while (this.persons()[nextIdx].status === 'absent' && tries < this.persons().length) {
-          nextIdx = (nextIdx + 1) % this.persons().length;
-          tries++;
-        }
-        if (this.persons()[nextIdx].id !== id) {
-          replacement = this.persons()[nextIdx];
-        }
-      }
+      replacement = suggestReplacement(this.persons(), id, this.croissant.state().passedSinceSync);
     }
     this.swapPreview.set(absent ? { absent, replacement } : null);
     const preview = document.getElementById('swap-preview');

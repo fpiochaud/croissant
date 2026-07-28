@@ -82,14 +82,15 @@ firestore.rules               # Règles de sécurité Firestore (voir section d�
 - **Pas de routing Angular réel** : `app.routes.ts` est vide. La navigation entre écrans est un `signal<Tab>` (`activeTab`) piloté par `NavigationComponent` + swipe tactile dans `app.ts`.
 - **Temps réel via `onSnapshot`** : 5 listeners actifs en continu après login (`users/{uid}`, `teams/{teamId}`, `.../persons`, `.../history`, `.../notifications`), plus un listener admin-only sur `users` global. Toute mutation locale fait un `state.update()` optimiste puis écrit dans Firestore (pas d'attente de round-trip).
 - **Rotation hebdomadaire automatique** : déclenchée côté client au premier snapshot confirmé serveur des `persons` (`checkAndRotate`), pas par une Cloud Function. Elle compare `lastRotationDate` stocké à la date du lundi (+ `sessionOffset`) le plus récent. Un bouton "forcer la rotation" existe en dev (`forceRotation`, visible dans `AdminComponent`).
-- **`orderBase` vs `rank`** : `rank` = position d'affichage courante (bouge à chaque rotation/remplacement/drag). `orderBase` = référence stable d'origine, utilisée uniquement pour resynchroniser l'ordre après un cycle complet de rotation (cf. commentaire détaillé dans `rotateOnce`, rotation-logic.ts:72-104). Ne pas confondre les deux en cas de bug d'ordre.
+- **`orderBase` vs `rank`** : `rank` = position d'affichage courante (bouge à chaque rotation/remplacement/drag). `orderBase` = référence stable d'origine. La resynchronisation (réaligner l'ordre courant sur `orderBase`) se déclenche quand tous les membres actuels ont porté les croissants au moins une fois depuis la dernière resync — compteur de distincts (`passedSinceSync`, champ sur `teams/{teamId}`), pas un simple compte de rotations. Reportée si la personne `orderBase 0` est absente au moment de la complétion. Cf. `rotateOnce` dans rotation-logic.ts. Ne pas confondre `orderBase` et `rank` en cas de bug d'ordre.
+- **`suggestReplacement`** (rotation-logic.ts) : la suggestion automatique de remplaçant (règle `rules.auto`) privilégie un membre qui n'a pas encore porté ce cycle (`passedSinceSync`), pour garantir qu'un tour = chaque membre passe une seule fois. Ne retombe sur un membre déjà passé que si aucun autre n'est disponible (ex. presque tout le monde absent). Le remplacement manuel n'est pas contraint par cette règle — l'admin peut toujours choisir n'importe qui.
 - **Notifications FCM par appareil, pas par utilisateur** : un même email peut avoir plusieurs tokens (téléphone + PC). Dédup par email fait côté script d'envoi (garde le plus récent), pas côté stockage.
 - **Rôle admin** = présence dans `users/{uid}.role === 'admin'` (pas une collection `admins` séparée malgré ce que dit docs/fonctionnement.md §2 — **vérifier le code fait foi**, la doc fonctionnelle peut être en retard sur ce point précis).
 
 ## Modèle de données Firestore (résumé — détail dans docs/fonctionnement.md §10)
 
 ```
-teams/{teamId}                        # teamName, lastRotationDate, sessionOffset, rules{auto,catch,manual}
+teams/{teamId}                        # teamName, lastRotationDate, sessionOffset, rules{auto,catch,manual}, passedSinceSync
 teams/{teamId}/persons/{id}           # name, initials, color, email, rank, orderBase, status(ok|absent|catch), replacedBy, absentDate, catchupDate, promoted
 teams/{teamId}/history/{id}           # date, type, details, timestamp
 teams/{teamId}/notifications/{id}
