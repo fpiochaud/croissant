@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.1.1 — 2026-07-29
+
+- fix: test
+- fix: nettoyage des champs inutiles
+
 ## v2.1.0 — 2026-07-28
 
 - feat: changement de l'affichage  admin
