@@ -32,7 +32,7 @@
     "@angular/build": "^22.0.7",
     "@angular/cli": "^22.0.7",
     "@angular/compiler-cli": "^22.0.7",
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.62.0",
     "firebase-admin": "^14.2.0",
     "firebase-tools": "^15.24.0",
     "jsdom": "^29.1.1",
