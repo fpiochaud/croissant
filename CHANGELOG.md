@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.2 — 2026-07-29
+
+- fix: indicateur admin sur la liste de rotation
+
 ## v2.1.1 — 2026-07-29
 
 - fix: test
