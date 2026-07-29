@@ -5,7 +5,7 @@
 			<div *ngFor="let person of personsWithDates()" class="person-card" (click)="editPerson(person)">
 				<div class="rank-badge" [ngClass]="person.color">{{person.initials}}</div>
 				<div class="person-info">
-					<div class="person-name">{{person.name}}</div>
+					<div class="person-name">{{person.name}}@if (person.isAdmin) {<span class="admin-role-badge">Admin</span>}</div>
 					<div class="person-meta">
 						@if (person.status === 'absent') {
 							<div>⛔ Absent le {{person.absentDate ?? person.dateLabel}}{{ person.replacedBy ? ' — remplacé par ' + person.replacedBy : '' }}</div>

@@ -36,9 +36,11 @@ test.describe('Pas de double rotation (cache stale)', () => {
     await page.waitForTimeout(3_000);
 
     // Alice doit rester en tête : aucune rotation ne doit s'être déclenchée.
+    // "Admin" (rank 4) a le rôle admin : son badge de rôle s'accole à son nom
+    // sans séparateur dans le textContent brut ("AdminAdmin"), voir rotation.spec.ts.
     const names = await page.locator('#rotation-list .person-name').allTextContents();
     expect(names[0]).toBe('Alice');
-    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'Admin']);
+    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'AdminAdmin']);
 
     // lastRotationDate en base ne doit pas avoir changé.
     const teamDoc = await getTeamDoc();

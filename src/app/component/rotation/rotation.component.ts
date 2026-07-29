@@ -1,7 +1,7 @@
 import { Component, computed } from '@angular/core';
 import { NgFor, NgClass } from '@angular/common';
 import { CroissantService, Person } from '../../croissant.service';
-import { computePersonsWithDates } from '../../rotation-logic';
+import { computePersonsWithDates, PersonWithDate } from '../../rotation-logic';
 
 @Component({
   selector: 'croissant-rotation',
@@ -12,9 +12,13 @@ import { computePersonsWithDates } from '../../rotation-logic';
 export class RotationComponent {
   persons = computed(() => this.croissant.state().persons);
 
-  personsWithDates = computed(() =>
-    computePersonsWithDates(this.persons(), this.croissant.state().sessionOffset)
-  );
+  personsWithDates = computed<(PersonWithDate & { isAdmin: boolean })[]>(() => {
+    const adminEmails = new Set(
+      this.croissant.users().filter(u => u.role === 'admin').map(u => u.email)
+    );
+    return computePersonsWithDates(this.persons(), this.croissant.state().sessionOffset)
+      .map(person => ({ ...person, isAdmin: !!person.email && adminEmails.has(person.email) }));
+  });
 
   constructor(public croissant: CroissantService) {}
 

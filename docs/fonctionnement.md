@@ -43,6 +43,8 @@ Il existe deux rôles :
 
 Le rôle est stocké dans le champ `role` du document `users/{uid}` (`member` ou `admin`). Un utilisateur dont le compte est en cours de suppression (présent dans `pendingDeletions`, voir §8) voit son accès bloqué avec un message explicatif.
 
+La collection `users` (donc le rôle de chacun) est lisible par tout membre authentifié — un badge **Admin** apparaît ainsi à côté du nom des administrateurs aussi bien dans l'onglet Liste (Rotation) que dans l'onglet Admin. Seule l'écriture de son propre document `users/{uid}` reste autorisée (pas de modification du rôle d'autrui côté client).
+
 ---
 
 ## 3. Rotation

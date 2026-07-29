@@ -54,7 +54,6 @@ export class CroissantService {
   private teamId = environment.teamId;
   private readonly HISTORY_PAGE_SIZE = 20;
   private listenersInitialized = false;
-  private adminListenersInitialized = false;
   private rotationChecked = false;
 
   state = signal<AppState>({
@@ -160,11 +159,6 @@ export class CroissantService {
         this.autoInitFCM();
       }
 
-      if (role === 'admin' && !this.adminListenersInitialized) {
-        this.adminListenersInitialized = true;
-        this.initAdminListeners();
-      }
-
       // Création du membre en arrière-plan (nouveaux utilisateurs uniquement)
       this.addPersonFromEmail(user.email ?? '').catch(e =>
         console.error('[auth] addPersonFromEmail failed:', e)
@@ -262,14 +256,12 @@ export class CroissantService {
       }
     );
 
-    this.subscribeHistory();
-  }
-
-  private initAdminListeners() {
     onSnapshot(collection(this.db, 'users'), (snap) => {
       const users = snap.docs.map(d => ({ id: d.id, ...d.data() } as UserProfile));
       this.users.set(users);
     });
+
+    this.subscribeHistory();
   }
 
   openTab(tab: 'rotation' | 'remplacement' | 'historique' | 'rappels' | 'params' | 'admin') {

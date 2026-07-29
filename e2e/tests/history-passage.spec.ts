@@ -68,10 +68,12 @@ test.describe('Historique - enregistrement du passage', () => {
     await expect(firstRow.locator('.history-date')).toHaveText(expectedLabel);
 
     // ── Étape 2 : retour sur la liste, l'ordre doit refléter la rotation ───
+    // Fred porte l'email admin (voir ci-dessus) : son badge de rôle s'accole
+    // à son nom sans séparateur dans le textContent brut ("FredAdmin").
     await page.locator('[data-testid="nav-rotation"]').click();
     await expect.poll(
       () => page.locator('#rotation-list .person-name').allTextContents(),
       { timeout: 5_000 },
-    ).toEqual(['Franck', 'Robert', 'Fred', 'Alice']);
+    ).toEqual(['Franck', 'Robert', 'FredAdmin', 'Alice']);
   });
 });

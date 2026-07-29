@@ -17,8 +17,12 @@ test.describe('Liste de rotation', () => {
   test('affiche les 4 personnes dans le bon ordre', async ({ page }) => {
     await loginAsAdmin(page);
 
+    // "Admin" est à la fois le nom du 5ème membre de test et son rôle réel
+    // (admin@test.com) : le badge de rôle s'accole donc à son nom sans séparateur
+    // dans le textContent brut ("AdminAdmin"), même si visuellement un espacement
+    // CSS (margin) les distingue.
     const names = await page.locator('#rotation-list .person-name').allTextContents();
-    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'Admin']);
+    expect(names).toEqual(['Alice', 'Bob', 'Charlie', 'Diana', 'AdminAdmin']);
   });
 
   test('toutes les cartes affichent une date prévisionnelle', async ({ page }) => {
