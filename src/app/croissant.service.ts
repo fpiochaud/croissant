@@ -31,11 +31,10 @@ export interface UserProfile {
 
 export interface AppState {
   persons: Person[];
-  notifPrefs: { eve: boolean; morning: boolean; swap: boolean };
-  rules: { auto: boolean; catch: boolean; manual: boolean };
+  notifPrefs: { eve: boolean; morning: boolean };
+  rules: { auto: boolean; catch: boolean };
   history: Array<{ id?: string; date: string; type: string; details: any }>;
   teamName: string;
-  notifications: any[];
   currentIndex: number;
   sessionOffset: number; // 0=lundi, 1=mardi, 2=mercredi
   passedSinceSync: string[]; // ids des membres passés depuis la dernière resync orderBase
@@ -60,11 +59,10 @@ export class CroissantService {
 
   state = signal<AppState>({
     persons: [],
-    notifPrefs: { eve: false, morning: false, swap: false },
-    rules: { auto: true, catch: true, manual: false },
+    notifPrefs: { eve: false, morning: false },
+    rules: { auto: true, catch: true },
     history: [],
     teamName: '',
-    notifications: [],
     currentIndex: 0,
     sessionOffset: 0,
     passedSinceSync: [],
@@ -144,7 +142,7 @@ export class CroissantService {
 
       if (!userSnap.exists()) {
         await setDoc(userRef, {
-          email: user.email, role: 'member', notifPrefs: { eve: true, morning: true, swap: true },
+          email: user.email, role: 'member', notifPrefs: { eve: true, morning: true },
           createdAt: serverTimestamp(), lastLogin: serverTimestamp(), appVersion: APP_VERSION,
         });
       } else {
@@ -217,7 +215,7 @@ export class CroissantService {
     // Préférences utilisateur (notifs + dark mode)
     onSnapshot(doc(this.db, 'users', uid), (snap) => {
       const data = snap.data() ?? {};
-      const notifPrefs = data['notifPrefs'] ?? { eve: false, morning: false, swap: false };
+      const notifPrefs = data['notifPrefs'] ?? { eve: false, morning: false };
       this.state.update(s => ({ ...s, notifPrefs }));
       if (data['darkMode'] !== undefined) {
         this.applyDarkMode(data['darkMode']);
@@ -241,7 +239,7 @@ export class CroissantService {
         setDoc(teamDoc, {
           teamName: 'Mon équipe',
           currentIndex: 0,
-          rules: { auto: true, catch: true, manual: false },
+          rules: { auto: true, catch: true },
           passedSinceSync: [],
         });
       }
@@ -265,14 +263,6 @@ export class CroissantService {
     );
 
     this.subscribeHistory();
-
-    onSnapshot(
-      query(collection(this.db, 'teams', this.teamId, 'notifications'), orderBy('timestamp', 'desc'), limit(10)),
-      (snap) => {
-        const notifications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        this.state.update(s => ({ ...s, notifications }));
-      }
-    );
   }
 
   private initAdminListeners() {
@@ -372,9 +362,7 @@ export class CroissantService {
 
     const batch = writeBatch(this.db);
     persons.forEach((p, i) => {
-      const update: any = { rank: i };
-      if (p.id === absentId) update.promoted = true;
-      batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), update);
+      batch.update(doc(this.db, 'teams', this.teamId, 'persons', p.id), { rank: i });
     });
     batch.commit();
   }

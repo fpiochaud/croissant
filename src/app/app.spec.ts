@@ -8,9 +8,9 @@ const mockCroissantService = {
   authStatus:      signal('loading' as const),
   activeTab:       signal('rotation' as const),
   state:           signal({
-    persons: [], notifPrefs: { eve: false, morning: false, swap: false },
-    rules: { auto: true, catch: true, manual: false }, history: [],
-    teamName: '', notifications: [], currentIndex: 0, sessionOffset: 0,
+    persons: [], notifPrefs: { eve: false, morning: false },
+    rules: { auto: true, catch: true }, history: [],
+    teamName: '', currentIndex: 0, sessionOffset: 0,
   }),
   darkMode:        signal(false),
   syncStatus:      signal('syncing' as const),

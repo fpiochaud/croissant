@@ -41,7 +41,7 @@ Il existe deux rôles :
 | **Membre** | Peut voir la rotation, déclarer sa propre absence, gérer ses notifications, modifier sa propre fiche |
 | **Administrateur** | Accès complet : gestion de tous les membres, suppression, décalage de session, règles de remplacement |
 
-Le rôle est déterminé par la présence de l'e-mail de l'utilisateur dans la collection `admins` de Firestore. Un utilisateur dont le compte est en cours de suppression (`pendingDeletion = true`) voit son accès bloqué avec un message explicatif.
+Le rôle est stocké dans le champ `role` du document `users/{uid}` (`member` ou `admin`). Un utilisateur dont le compte est en cours de suppression (présent dans `pendingDeletions`, voir §8) voit son accès bloqué avec un message explicatif.
 
 ---
 
@@ -137,7 +137,7 @@ Lors de la rotation suivante, le statut `absent` passe à `catch` et le membre a
 
 ### Activation par l'utilisateur
 
-Chaque membre active les notifications depuis l'onglet **Rappels**. L'app demande la permission du navigateur, puis enregistre le token FCM dans la collection `subscriptions` de Firestore avec l'e-mail de l'utilisateur et ses préférences (veille / matin).
+Chaque membre active les notifications depuis l'onglet **Rappels**. L'app demande la permission du navigateur, puis enregistre le token FCM dans la sous-collection `teams/{teamId}/tokens` de Firestore avec l'e-mail de l'utilisateur. Les préférences (veille / matin) sont stockées séparément sur le document `users/{uid}` (`notifPrefs.eve` / `notifPrefs.morning`).
 
 Les notifications sont **par appareil** : un membre qui utilise l'app sur téléphone et ordinateur aura deux tokens distincts.
 
@@ -152,11 +152,11 @@ Deux workflows GitHub Actions envoient les notifications chaque semaine :
 
 Le script `send-reminders.js` :
 1. Récupère le membre en position 0 (prochain à apporter)
-2. Lit tous les tokens FCM dans `subscriptions`, filtrés selon les préférences de chaque utilisateur
+2. Lit tous les tokens FCM dans `teams/{teamId}/tokens`, filtrés selon les préférences de chaque utilisateur
 3. Déduplique par e-mail (conserve le token le plus récent)
 4. Envoie un message FCM data-only (sans payload `notification`) — le Service Worker intercepte l'événement `push` et affiche la notification
 5. Nettoie les tokens invalides (appareils désenregistrés)
-6. Écrit un document dans `remindersSent/{type}-{date}` pour éviter les doublons en cas de déclenchement multiple
+6. Écrit un document dans `teams/{teamId}/remindersSent/{type}-{date}` pour éviter les doublons en cas de déclenchement multiple
 
 ### Désactivation
 
@@ -231,7 +231,7 @@ Ce décalage s'affiche dans le header sous forme d'un avertissement orange : `�
 
 ### Suppression de comptes utilisateurs
 
-Lorsqu'un membre quitte l'équipe, son compte Firebase Auth peut être marqué pour suppression (`pendingDeletion`). Le workflow `reminder-eve` exécute chaque dimanche le script `delete-users.js` qui supprime effectivement ces comptes.
+Lorsqu'un membre quitte l'équipe (suppression depuis l'app), un document est créé dans `pendingDeletions/{emailEncodé}`. Le workflow `reminder-eve` exécute chaque dimanche le script `delete-users.js` qui supprime effectivement le compte Firebase Auth correspondant, son profil `users/{uid}`, puis l'entrée `pendingDeletions`.
 
 ---
 
@@ -289,23 +289,35 @@ Un document par événement.
 | `type` | string | Type d'action |
 | `details` | object | Données de l'événement |
 
-### Collection `subscriptions/{tokenId}`
+### Sous-collection `teams/{teamId}/tokens/{tokenId}`
 
-Un document par token FCM enregistré.
+Un document par token FCM enregistré (id = 40 premiers caractères du token).
 
 | Champ | Type | Description |
 |---|---|---|
 | `token` | string | Token FCM de l'appareil |
-| `email` | string | E-mail de l'utilisateur |
-| `teamId` | string | ID de l'équipe |
-| `eve` | boolean | Préférence rappel veille |
-| `morning` | boolean | Préférence rappel matin |
+| `email` | string \| null | E-mail de l'utilisateur |
 | `updatedAt` | timestamp | Date d'enregistrement |
 
-### Collection `admins/{encodedEmail}`
-
-Un document par administrateur. L'e-mail est encodé (`.` remplacé par `,`).
-
-### Collection `remindersSent/{type}-{date}`
+### Sous-collection `teams/{teamId}/remindersSent/{type}-{date}`
 
 Anti-doublon pour les rappels. Un document est créé après chaque envoi pour éviter de renvoyer le même rappel deux fois dans la journée.
+
+### Collection `users/{uid}`
+
+Un document par utilisateur authentifié (clé = uid Firebase Auth).
+
+| Champ | Type | Description |
+|---|---|---|
+| `email` | string | E-mail de l'utilisateur |
+| `role` | string | `member` ou `admin` |
+| `notifPrefs.eve` | boolean | Préférence rappel veille |
+| `notifPrefs.morning` | boolean | Préférence rappel matin |
+| `darkMode` | boolean | Préférence mode sombre (optionnel) |
+| `lastLogin` | timestamp | Dernière connexion |
+| `appVersion` | string | Version de l'app chargée à la dernière connexion |
+| `createdAt` | timestamp | Date de création du compte |
+
+### Collection `pendingDeletions/{encodedEmail}`
+
+Un document par suppression de membre en attente (voir §8). L'e-mail est encodé (`@` → `_at_`, `.` → `_dot_`).

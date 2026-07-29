@@ -108,7 +108,6 @@ export class ModauxComponent {
       updated.replacedBy = null;
       updated.absentDate = null;
       updated.catchupDate = null;
-      updated.promoted = null;
     }
     if (this.croissant.isAdmin()) {
       const orderBaseVal = (document.getElementById('edit-order-base') as HTMLInputElement)?.value;

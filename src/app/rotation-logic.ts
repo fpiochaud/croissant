@@ -13,7 +13,6 @@ export interface Person {
   replacedBy?: string | null;
   absentDate?: string | null;
   catchupDate?: string | null;
-  promoted?: boolean | null;
 }
 
 export interface PersonWithDate extends Person {

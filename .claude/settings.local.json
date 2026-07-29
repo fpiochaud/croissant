@@ -139,7 +139,8 @@
       "Bash(lsof -i :8080 -sTCP:LISTEN -i :4201 -sTCP:LISTEN)",
       "Bash(npm info *)",
       "Bash(git revert *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d['scripts'], indent=2\\)\\)\")"
     ]
   }
 }

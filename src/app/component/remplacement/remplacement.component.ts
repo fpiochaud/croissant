@@ -91,7 +91,7 @@ export class RemplacementComponent {
     if (domPreview) domPreview.style.display = 'none';
   }
 
-  toggleRule(rule: 'auto' | 'catch' | 'manual') {
+  toggleRule(rule: 'auto' | 'catch') {
     this.croissant.setRule(rule, !this.rules()[rule]);
   }
 }

@@ -36,12 +36,6 @@ service cloud.firestore {
       allow write: if isAuthenticated() && request.auth.uid == uid;
     }
 
-    // ── Notifications de remplacement en attente ──────────────
-    match /pendingSwapNotifications/{docId} {
-      allow read: if false;         // Uniquement GitHub Actions (Admin SDK)
-      allow write: if isAuthenticated();
-    }
-
     // ── Suppressions en attente ────────────────────────────────
     // Lecture : l'utilisateur peut vérifier s'il est bloqué (par son email encodé)
     // Écriture : admin uniquement
